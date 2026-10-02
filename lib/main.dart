@@ -15,17 +15,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Local storage is opened before the first frame so settings (theme,
-  // onboarding) apply immediately. These boxes are small and open quickly.
-  await Hive.initFlutter();
-  final boxes = await Future.wait([
-    Hive.openBox<String>(HiveCacheStore.boxName),
-    Hive.openBox<String>('bookmarks'),
-    Hive.openBox<String>('settings'),
-  ]);
-  final info = await PackageInfo.fromPlatform();
+  // onboarding) apply immediately. Nothing here may stop the app from
+  // opening: each step has a fallback.
+  final stores = await _openStores();
+  final version = await PackageInfo.fromPlatform()
+      .then((info) => info.version)
+      .timeout(const Duration(seconds: 3))
+      .catchError((Object _) => '');
   // Notifications and analytics stay off unless the build has Firebase
-  // settings (README → Firebase).
-  final firebase = await initializeFirebase(AppConfig.fromEnvironment());
+  // settings (README → Firebase), or if Firebase doesn't answer in time.
+  final firebase = await initializeFirebase(AppConfig.fromEnvironment())
+      .timeout(const Duration(seconds: 5), onTimeout: () => false);
 
   runApp(
     ProviderScope(
@@ -33,10 +33,10 @@ Future<void> main() async {
       // automatically in the background.
       retry: (_, _) => null,
       overrides: [
-        cacheStoreProvider.overrideWithValue(HiveCacheStore(boxes[0])),
-        bookmarkStoreProvider.overrideWithValue(HiveLocalStore(boxes[1])),
-        settingsStoreProvider.overrideWithValue(HiveLocalStore(boxes[2])),
-        appVersionProvider.overrideWithValue(info.version),
+        cacheStoreProvider.overrideWithValue(stores.cache),
+        bookmarkStoreProvider.overrideWithValue(stores.bookmarks),
+        settingsStoreProvider.overrideWithValue(stores.settings),
+        appVersionProvider.overrideWithValue(version),
         if (firebase) ...[
           notificationServiceProvider.overrideWithValue(
             FirebaseNotificationService(),
@@ -51,5 +51,55 @@ Future<void> main() async {
       ],
       child: const AllBioHubApp(),
     ),
+  );
+}
+
+/// On-device storage. If a box can't be opened (a damaged file, a full
+/// disk), the app still opens: a damaged cache is rebuilt, and settings or
+/// bookmarks fall back to memory for this session without being deleted.
+Future<({CacheStore cache, LocalStore bookmarks, LocalStore settings})>
+_openStores() async {
+  try {
+    await Hive.initFlutter();
+  } catch (e) {
+    debugPrint('Storage unavailable, using memory: $e');
+    return (
+      cache: MemoryCacheStore(),
+      bookmarks: MemoryLocalStore(),
+      settings: MemoryLocalStore(),
+    );
+  }
+
+  Future<Box<String>?> open(String name, {bool rebuild = false}) async {
+    try {
+      return await Hive.openBox<String>(name)
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('Could not open $name: $e');
+      if (!rebuild) return null;
+      try {
+        await Hive.deleteBoxFromDisk(name);
+        return await Hive.openBox<String>(name);
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  final boxes = await Future.wait([
+    open(HiveCacheStore.boxName, rebuild: true),
+    open('bookmarks'),
+    open('settings'),
+  ]);
+  return (
+    cache: boxes[0] == null
+        ? MemoryCacheStore()
+        : HiveCacheStore(boxes[0]!) as CacheStore,
+    bookmarks: boxes[1] == null
+        ? MemoryLocalStore()
+        : HiveLocalStore(boxes[1]!) as LocalStore,
+    settings: boxes[2] == null
+        ? MemoryLocalStore()
+        : HiveLocalStore(boxes[2]!) as LocalStore,
   );
 }

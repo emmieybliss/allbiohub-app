@@ -177,7 +177,15 @@ void main() {
       );
       final repo = TaxonomyRepository(client: client, config: config);
       final slugs = (await repo.categories()).map((c) => c.slug);
-      expect(slugs, ['biography', 'celebrity-news', 'money-career']);
+      expect(slugs, [
+        'around-the-web',
+        'biography',
+        'celebrity-news',
+        'money-career',
+        'reviews',
+        'startup-founders-innovator',
+        'women-in-tech',
+      ]);
     });
   });
 

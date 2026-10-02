@@ -176,6 +176,20 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('every category has a rail on Home, small ones included', (
+    tester,
+  ) async {
+    await launch(tester, siteEnv());
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Women In Tech'),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Women In Tech'), findsOneWidget);
+  });
+
   testWidgets('search finds stories from Home', (tester) async {
     final env = siteEnv();
     await launch(tester, env);

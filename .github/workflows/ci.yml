@@ -30,6 +30,12 @@ jobs:
 
       # Test APK signed with the debug key so every change can be installed
       # and tried. Signed releases come from the Release workflow (RELEASE.md).
+      # The debug key is kept between runs so a newer test APK installs over
+      # an older one instead of failing with "App not installed".
+      - uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: android-preview-keystore-v1
       - name: Build settings
         run: tool/ci/write_env.sh .env.ci
         env:

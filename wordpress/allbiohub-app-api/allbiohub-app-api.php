@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AllBioHub App API
  * Description:       Read-only startup directory API for the AllBioHub mobile app. Adds GET routes under /wp-json/allbiohub/v1/ and changes nothing else on the site.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            AllBioHub

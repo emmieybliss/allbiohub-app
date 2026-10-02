@@ -39,7 +39,10 @@ The contract is in [API.md](../../API.md).
    - where it found the startups (the startup plugin's post type or table)
      and how many are live,
    - which stored field feeds each app field,
-   - a preview of the first startup exactly as the app will see it.
+   - a preview of the first startup exactly as the app will see it,
+   - under **Other places checked**, every post type and table that looked
+     like startups with its count. If several do, the one with the most
+     live startups is used.
 4. If the preview looks right, tick **Share the startup directory with the
    app** and **Save**. The Startups tab in the app fills in on next open.
 

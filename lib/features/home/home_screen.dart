@@ -103,7 +103,8 @@ class HomeScreen extends ConsumerWidget {
       ),
       const _CategorySections(start: 0, count: 2),
       const SliverToBoxAdapter(child: _StartupsSection()),
-      const _CategorySections(start: 2, count: 4),
+      // Every other category, so small ones like Women in Tech still show.
+      const _CategorySections(start: 2),
       if (rest.isNotEmpty) ...[
         const SliverToBoxAdapter(child: SectionHeader(title: 'More to read')),
         SliverList.list(
@@ -192,16 +193,19 @@ class _FeaturedCarouselState extends State<_FeaturedCarousel> {
 
 /// Rails for a slice of the categories list.
 class _CategorySections extends ConsumerWidget {
-  const _CategorySections({required this.start, required this.count});
+  const _CategorySections({required this.start, this.count});
 
   final int start;
-  final int count;
+
+  /// How many rails to show; all the remaining categories when null.
+  final int? count;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categories =
         ref.watch(categoriesProvider).value ?? const <Category>[];
-    final slice = categories.skip(start).take(count).toList();
+    final rest = categories.skip(start);
+    final slice = (count == null ? rest : rest.take(count!)).toList();
     return SliverList.list(
       children: [for (final c in slice) _CategoryRail(category: c)],
     );

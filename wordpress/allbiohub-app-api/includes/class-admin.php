@@ -45,6 +45,37 @@ final class AllBioHub_App_API_Admin {
 		exit;
 	}
 
+	/**
+	 * Every place that looked like startups, with its live count, and the
+	 * column names of directory-like tables, to help when the wrong source
+	 * is picked. Shows names and counts only, never row contents.
+	 */
+	private static function render_candidates( $chosen ) {
+		global $wpdb;
+		?>
+		<details style="max-width:720px;margin-top:12px">
+			<summary><?php esc_html_e( 'Other places checked', 'allbiohub-app-api' ); ?></summary>
+			<table class="widefat striped">
+				<tbody>
+				<?php foreach ( AllBioHub_App_API_Sources::candidates() as $candidate ) : ?>
+					<tr>
+						<td><?php echo esc_html( $candidate->describe() ); ?></td>
+						<td><?php echo esc_html( count( $candidate->records() ) ); ?></td>
+						<td><?php echo $chosen && $chosen->describe() === $candidate->describe() ? esc_html__( 'used', 'allbiohub-app-api' ) : ''; ?></td>
+					</tr>
+				<?php endforeach; ?>
+				<?php foreach ( AllBioHub_App_API_Sources::table_names() as $table ) : ?>
+					<tr>
+						<td><?php echo esc_html( $table ); ?></td>
+						<td colspan="2"><code><?php echo esc_html( implode( ', ', (array) $wpdb->get_col( 'SHOW COLUMNS FROM `' . esc_sql( $table ) . '`' ) ) ); ?></code></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		</details>
+		<?php
+	}
+
 	public static function render() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -67,6 +98,7 @@ final class AllBioHub_App_API_Admin {
 				<div class="notice notice-warning inline"><p>
 					<?php esc_html_e( 'No startup post type or startup table was found. Make sure the startup directory plugin is active. If it stores data somewhere unusual, see the readme for the allbiohub_app_api_source filter.', 'allbiohub-app-api' ); ?>
 				</p></div>
+				<?php self::render_candidates( null ); ?>
 			<?php else : ?>
 				<table class="widefat striped" style="max-width:720px">
 					<tbody>
@@ -74,6 +106,8 @@ final class AllBioHub_App_API_Admin {
 						<tr><th><?php esc_html_e( 'Live startups', 'allbiohub-app-api' ); ?></th><td><?php echo esc_html( count( $built['startups'] ) . ' / ' . $built['records'] ); ?></td></tr>
 					</tbody>
 				</table>
+
+				<?php self::render_candidates( $source ); ?>
 
 				<h2><?php esc_html_e( '2. Fields the app will show', 'allbiohub-app-api' ); ?></h2>
 				<p><?php esc_html_e( 'Only these fields are ever sent. Anything else stored with a startup (emails, payments, notes) is never included.', 'allbiohub-app-api' ); ?></p>
