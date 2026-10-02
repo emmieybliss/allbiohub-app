@@ -38,10 +38,14 @@ class MessageView extends StatelessWidget {
               width: compact ? 56 : 72,
               height: compact ? 56 : 72,
               decoration: BoxDecoration(
-                color: brand.goldSoft,
+                color: brand.accentSoft,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: compact ? 26 : 32, color: brand.goldText),
+              child: Icon(
+                icon,
+                size: compact ? 26 : 32,
+                color: brand.accentText,
+              ),
             ),
             SizedBox(height: compact ? 14 : 20),
             Text(
@@ -108,12 +112,12 @@ class OfflineBanner extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
         padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
         decoration: BoxDecoration(
-          color: brand.goldSoft,
+          color: brand.accentSoft,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Icon(Icons.cloud_off_rounded, size: 18, color: brand.goldText),
+            Icon(Icons.cloud_off_rounded, size: 18, color: brand.accentText),
             const SizedBox(width: 10),
             Expanded(
               child: Text(

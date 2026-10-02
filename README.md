@@ -64,7 +64,7 @@ app can be extracted from the APK.
 | `APP_ENV` | `production` | `development` / `staging` / `production` |
 | `WORDPRESS_BASE_URL` | `https://allbiohub.com` | Content source and canonical share links |
 | `STARTUP_API_PATH` | `/wp-json/allbiohub/v1` | Startup directory API base path |
-| `PRIVACY_POLICY_URL` | empty | Website privacy policy (Profile → Privacy) |
+| `PRIVACY_POLICY_URL` | site privacy policy page | Profile → Privacy → full policy; also the Play Console privacy policy link |
 | `TERMS_URL` | site terms page | Profile → Terms |
 | `CONTACT_EMAIL` | empty | Profile → Contact (hidden when empty) |
 | `FIREBASE_*` | empty | Firebase options (below) |
@@ -96,9 +96,11 @@ and Profile → Notifications says push isn't on yet.
    to the project** (it's git-ignored and the app doesn't need it). Skip the
    remaining "Add Firebase SDK" steps; the app already has them.
 4. Open the downloaded `google-services.json` in a text editor and copy four
-   values into your `.env.prod` (copied from `.env.example`):
+   values into the repository's Actions secrets (RELEASE.md, step 2), and
+   into your `.env.prod` if you build on your own computer. Keep them out of
+   `.env.example`, which is in Git:
 
-   | `.env.prod` key | Where it is in `google-services.json` |
+   | Name | Where it is in `google-services.json` |
    |---|---|
    | `FIREBASE_PROJECT_ID` | `project_info.project_id` |
    | `FIREBASE_MESSAGING_SENDER_ID` | `project_info.project_number` |
@@ -110,9 +112,9 @@ and Profile → Notifications says push isn't on yet.
 5. Build the release as in RELEASE.md. On first launch the app connects to
    Firebase; turning on a topic in Profile → Notifications asks for the
    notification permission and subscribes to that topic.
-6. Optional, for CI builds with Firebase: in GitHub → Settings → Secrets and
-   variables → Actions, add the four values as secrets and pass them to the
-   build step. The CI build uses `.env.example` (Firebase off) by default.
+6. CI (`tool/ci/write_env.sh`) fills the four secrets into the build
+   settings, so the test APK from every change and the signed Release build
+   both have Firebase. Without the secrets, those builds have it off.
 
 ### Sending a notification
 
@@ -156,7 +158,9 @@ flutter build apk --release --dart-define-from-file=.env.prod    # release APK
 Output: `build/app/outputs/flutter-apk/`. Signing and distribution:
 [RELEASE.md](RELEASE.md). GitHub Actions (`.github/workflows/ci.yml`) runs
 format, analyze and tests on every push and attaches an installable
-(debug-signed) release APK to each run.
+(debug-signed) test APK to each run. The Release workflow
+(`.github/workflows/release.yml`, run by hand) builds the signed APK and
+Play Store bundle.
 
 ## Deep linking (Android App Links)
 
@@ -201,11 +205,19 @@ Already in place: final application ID, release signing via
 themed icon, Android 12 splash, only the INTERNET and (asked when a topic is
 turned on) notification permissions, no advertising id, HTTPS-only
 network config, no background work, backup rules that skip the API cache.
-Still needed: the privacy policy page on the website (draft prepared; set
-`PRIVACY_POLICY_URL` once it's live),
-store listing text and screenshots, the content rating questionnaire, the
-Data safety form (the Privacy text in Profile summarizes what the app does),
-and an AAB build (`flutter build appbundle`).
+The privacy policy is live at https://allbiohub.com/privacy-policy/ and
+linked from Profile → Privacy; use the same link in the Play Console.
+Still needed: the release key (RELEASE.md), store listing text and
+screenshots, the content rating questionnaire, and the Data safety form (the
+Privacy text in Profile summarizes what the app does). The Release workflow
+builds the AAB.
+
+## Brand assets
+
+The launcher icon (adaptive and themed), splash images, Play Store icon and
+in-app logo all come from the official AllBioHub Media logo in
+`tool/brand/allbiohub_media_logo.jpg`. If the logo changes, replace that
+file and run `python3 tool/brand/make_icons.py` (needs Pillow and numpy).
 
 ## Known limitations
 
@@ -217,20 +229,16 @@ and an AAB build (`flutter build appbundle`).
   them; Featured uses sticky posts, else the newest stories.
 - **Coverage is a name match.** Startup coverage searches stories for the
   startup's name; an explicit relationship in the API would be more precise.
-- **Icon is a placeholder monogram** (gold "A") generated from the brand
-  fonts and colours. Replace `android/app/src/main/res/mipmap-*` and
-  `assets/branding/play_store_icon_512.png` with the official logo.
-- **Firebase is not connected** (see above).
 - **No accounts or cloud sync** in V1; bookmarks are on-device.
-- **Website gaps:** no Technology/Spotlight categories and no privacy policy
-  page exist on the site yet; the app adapts to whatever categories exist.
+- **Website gaps:** no Technology/Spotlight categories exist on the site
+  yet; the app adapts to whatever categories exist.
 
 ## Troubleshooting
 
 | Problem | Fix |
 |---|---|
 | `flutter.sdk not set in local.properties` | Run `flutter pub get` once, or open the project in Android Studio |
-| Release build signed with the debug key | `android/key.properties` is missing; see RELEASE.md |
+| Release build signed with the debug key | `android/key.properties` is missing (local builds) or the key secrets are missing (Release workflow); see RELEASE.md |
 | Links open a chooser instead of the app | `assetlinks.json` missing or fingerprint wrong; check `adb shell pm get-app-links com.allbiohub.app` |
 | Everything shows "You're offline" | Check `WORDPRESS_BASE_URL`, and that the device can open the site in a browser |
 | Startups tab says "on its way" | Install the AllBioHub App API plugin and switch it on under Tools (wordpress/allbiohub-app-api) |

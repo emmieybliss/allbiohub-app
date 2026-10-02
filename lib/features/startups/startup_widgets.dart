@@ -29,7 +29,7 @@ class StartupLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: brand.goldSoft,
+        color: brand.accentSoft,
         borderRadius: BorderRadius.circular(size * 0.26),
         border: Border.all(color: brand.border),
       ),
@@ -50,7 +50,7 @@ class StartupLogo extends StatelessWidget {
                   AppFonts.display,
                   size * 0.36,
                   FontWeight.w700,
-                  color: brand.goldText,
+                  color: brand.accentText,
                 ),
               ),
             ),
@@ -75,7 +75,7 @@ class StartupBadges extends StatelessWidget {
     final badges = [
       if (startup.verified)
         (Icons.verified_rounded, 'Verified', brand.verified),
-      if (startup.featured) (Icons.star_rounded, 'Featured', brand.goldText),
+      if (startup.featured) (Icons.star_rounded, 'Featured', brand.accentText),
       if (showClaimed && startup.claimed)
         (Icons.how_to_reg_rounded, 'Claimed', brand.muted),
     ];
@@ -208,7 +208,7 @@ class StartupCard extends StatelessWidget {
                     if (startup.featured)
                       Icon(
                         Icons.star_rounded,
-                        color: brand.goldText,
+                        color: brand.accentText,
                         size: 20,
                         semanticLabel: 'Featured',
                       ),
@@ -233,14 +233,14 @@ class StartupCard extends StatelessWidget {
                     Text(
                       'View startup',
                       style: context.text.labelLarge?.copyWith(
-                        color: brand.goldText,
+                        color: brand.accentText,
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(
                       Icons.arrow_forward_rounded,
                       size: 16,
-                      color: brand.goldText,
+                      color: brand.accentText,
                     ),
                   ],
                 ),
@@ -280,7 +280,8 @@ class StartupDirectoryPromo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final brand = context.brand;
+    // The card is dark in both themes, so it takes the dark accents.
+    const brand = BrandColors.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Material(
@@ -300,7 +301,7 @@ class StartupDirectoryPromo extends StatelessWidget {
                       Text(
                         'STARTUP DIRECTORY',
                         style: context.text.labelSmall?.copyWith(
-                          color: brand.gold,
+                          color: brand.accentText,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -321,7 +322,11 @@ class StartupDirectoryPromo extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Icon(Icons.rocket_launch_rounded, color: brand.gold, size: 36),
+                Icon(
+                  Icons.rocket_launch_rounded,
+                  color: brand.highlight,
+                  size: 36,
+                ),
               ],
             ),
           ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:hive_ce/hive.dart';
 
 /// A cached JSON payload and when it was stored.
@@ -31,9 +32,13 @@ class HiveCacheStore implements CacheStore {
   /// Oldest entries are dropped past this size so the cache can't grow forever.
   final int maxEntries;
 
+  /// Hive keys are limited to 255 characters and request URLs are often
+  /// longer, so entries are stored under a hash of the URL.
+  static String boxKey(String key) => sha1.convert(utf8.encode(key)).toString();
+
   @override
   CacheEntry? read(String key) {
-    final raw = _box.get(key);
+    final raw = _box.get(boxKey(key));
     if (raw == null) return null;
     try {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
@@ -42,7 +47,7 @@ class HiveCacheStore implements CacheStore {
         payload: decoded['p'] as Map<String, dynamic>,
       );
     } catch (_) {
-      _box.delete(key);
+      _box.delete(boxKey(key));
       return null;
     }
   }
@@ -50,7 +55,7 @@ class HiveCacheStore implements CacheStore {
   @override
   Future<void> write(String key, Map<String, dynamic> payload) async {
     await _box.put(
-      key,
+      boxKey(key),
       jsonEncode({'t': DateTime.now().millisecondsSinceEpoch, 'p': payload}),
     );
     if (_box.length > maxEntries) {

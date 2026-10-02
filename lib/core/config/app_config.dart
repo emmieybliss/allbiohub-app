@@ -31,7 +31,10 @@ class AppConfig {
         'STARTUP_API_PATH',
         defaultValue: '/wp-json/allbiohub/v1',
       ),
-      privacyPolicyUrl: String.fromEnvironment('PRIVACY_POLICY_URL'),
+      privacyPolicyUrl: String.fromEnvironment(
+        'PRIVACY_POLICY_URL',
+        defaultValue: 'https://allbiohub.com/privacy-policy/',
+      ),
       termsUrl: String.fromEnvironment(
         'TERMS_URL',
         defaultValue: 'https://allbiohub.com/terms-and-conditions/',

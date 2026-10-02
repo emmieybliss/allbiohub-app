@@ -6,7 +6,7 @@ import '../../core/models/article.dart';
 import '../../core/providers.dart';
 import '../../core/theme/app_theme.dart';
 
-/// The ALLBIOHUB wordmark, set in the display face with a gold accent.
+/// The AllBioHub wordmark as in the logo: bold sans, "Hub" in brand orange.
 class Wordmark extends StatelessWidget {
   const Wordmark({super.key, this.size = 22, this.color});
 
@@ -16,10 +16,10 @@ class Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = fontStyle(
-      AppFonts.display,
+      AppFonts.body,
       size,
       FontWeight.w800,
-      letterSpacing: size * 0.04,
+      letterSpacing: size * -0.03,
       color: color ?? context.colors.onSurface,
     );
     return Semantics(
@@ -28,17 +28,32 @@ class Wordmark extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           children: [
-            TextSpan(text: 'ALL', style: base),
+            TextSpan(text: 'AllBio', style: base),
             TextSpan(
-              text: 'BIO',
-              style: base.copyWith(color: context.brand.gold),
+              text: 'Hub',
+              style: base.copyWith(color: context.brand.highlight),
             ),
-            TextSpan(text: 'HUB', style: base),
           ],
         ),
       ),
     );
   }
+}
+
+/// The circle-and-silhouette mark from the logo.
+class LogoMark extends StatelessWidget {
+  const LogoMark({super.key, this.size = 96});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'assets/branding/logo_mark.png',
+    width: size,
+    height: size,
+    excludeFromSemantics: true,
+    filterQuality: FilterQuality.medium,
+  );
 }
 
 /// Section title with an optional "View all" action.
@@ -137,7 +152,7 @@ class BookmarkButton extends ConsumerWidget {
         child: Icon(
           saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
           key: ValueKey(saved),
-          color: saved ? context.brand.goldText : color,
+          color: saved ? context.brand.accentText : color,
         ),
       ),
     );

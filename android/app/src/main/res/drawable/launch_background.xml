@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pre-Android 12 launch screen: brand black with the monogram. -->
+<!-- Pre-Android 12 launch screen: the logo mark on the brand background. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/brand_black" />
+    <item android:drawable="@color/splash_background" />
     <item>
         <bitmap
             android:gravity="center"

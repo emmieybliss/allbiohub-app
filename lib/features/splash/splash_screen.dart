@@ -58,7 +58,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0D),
       body: Center(
         child: FadeTransition(
           opacity: fade,
@@ -67,16 +66,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Wordmark(size: 34, color: Colors.white),
-                const SizedBox(height: 12),
+                const LogoMark(size: 112),
+                const SizedBox(height: 20),
+                const Wordmark(size: 34),
+                const SizedBox(height: 10),
                 Text(
-                  'READ. DISCOVER. CONNECT.',
+                  'INFORM. INSPIRE. IMPACT.',
                   style: fontStyle(
                     AppFonts.body,
                     11,
                     FontWeight.w600,
                     letterSpacing: 3,
-                    color: Colors.white54,
+                    color: context.brand.muted,
                   ),
                 ),
               ],

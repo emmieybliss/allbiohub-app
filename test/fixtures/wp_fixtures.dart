@@ -107,7 +107,16 @@ Map<String, dynamic> wpPost({
   },
 };
 
+/// The live site's categories (October 2026).
 List<Map<String, dynamic>> wpCategories() => [
+  {
+    'id': 124,
+    'name': 'AROUND THE WEB',
+    'slug': 'around-the-web',
+    'count': 207,
+    'description': '',
+    'parent': 0,
+  },
   {
     'id': 1,
     'name': 'BIOGRAPHY',
@@ -125,14 +134,6 @@ List<Map<String, dynamic>> wpCategories() => [
     'parent': 0,
   },
   {
-    'id': 216,
-    'name': 'MONEY &amp; CAREER',
-    'slug': 'money-career',
-    'count': 13,
-    'description': '',
-    'parent': 0,
-  },
-  {
     'id': 777,
     'name': 'EDITORIAL SUBMISSION',
     'slug': 'editorial-submission',
@@ -141,10 +142,42 @@ List<Map<String, dynamic>> wpCategories() => [
     'parent': 0,
   },
   {
+    'id': 216,
+    'name': 'MONEY &amp; CAREER',
+    'slug': 'money-career',
+    'count': 13,
+    'description': '',
+    'parent': 0,
+  },
+  {
+    'id': 206,
+    'name': 'REVIEWS',
+    'slug': 'reviews',
+    'count': 14,
+    'description': '',
+    'parent': 0,
+  },
+  {
     'id': 639,
     'name': 'SPONSORED',
     'slug': 'sponsored',
     'count': 0,
+    'description': '',
+    'parent': 0,
+  },
+  {
+    'id': 231,
+    'name': 'STARTUP FOUNDERS &amp; INNOVATOR',
+    'slug': 'startup-founders-innovator',
+    'count': 27,
+    'description': '',
+    'parent': 0,
+  },
+  {
+    'id': 611,
+    'name': 'WOMEN IN TECH',
+    'slug': 'women-in-tech',
+    'count': 4,
     'description': '',
     'parent': 0,
   },

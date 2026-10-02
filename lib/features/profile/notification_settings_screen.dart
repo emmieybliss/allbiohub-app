@@ -42,14 +42,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
               margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: context.brand.goldSoft,
+                color: context.brand.accentSoft,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.notifications_paused_outlined,
-                    color: context.brand.goldText,
+                    color: context.brand.accentText,
                   ),
                   const SizedBox(width: 12),
                   Expanded(

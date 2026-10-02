@@ -106,7 +106,13 @@ class ApiClient {
         total: _intHeader(response.headers, 'x-wp-total'),
         totalPages: _intHeader(response.headers, 'x-wp-totalpages'),
       );
-      await _cache.write(key, result.toCache());
+      try {
+        await _cache.write(key, result.toCache());
+      } catch (e) {
+        // A full or broken cache must never turn a good response into an
+        // error.
+        debugPrint('ApiClient: not cached: $e');
+      }
       return result;
     } catch (error) {
       final failure = AppException.from(error);

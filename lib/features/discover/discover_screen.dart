@@ -214,7 +214,7 @@ class _CategoryTile extends StatelessWidget {
             children: [
               Icon(
                 categoryIcon(category.slug),
-                color: brand.goldText,
+                color: brand.accentText,
                 size: 26,
               ),
               const Spacer(),

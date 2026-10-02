@@ -19,9 +19,11 @@ void main() {
       final bg = theme.colorScheme.surface;
       expect(contrast(theme.colorScheme.onSurface, bg), greaterThan(7));
       expect(contrast(brand.muted, bg), greaterThan(4.5));
-      expect(contrast(brand.goldText, bg), greaterThan(4.5));
-      expect(contrast(brand.goldText, brand.card), greaterThan(4.5));
-      expect(contrast(brand.onGold, brand.gold), greaterThan(4.5));
+      expect(contrast(brand.accentText, bg), greaterThan(4.5));
+      expect(contrast(brand.accentText, brand.card), greaterThan(4.5));
+      expect(contrast(brand.onAccent, brand.accent), greaterThan(4.5));
+      // The orange is for large text (the wordmark), which needs 3:1.
+      expect(contrast(brand.highlight, bg), greaterThan(3));
     });
   }
 }

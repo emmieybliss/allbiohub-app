@@ -280,8 +280,8 @@ class _ActionCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: CircleAvatar(
-          backgroundColor: brand.goldSoft,
-          child: Icon(icon, color: brand.goldText),
+          backgroundColor: brand.accentSoft,
+          child: Icon(icon, color: brand.accentText),
         ),
         title: Text(title),
         subtitle: Text(body),

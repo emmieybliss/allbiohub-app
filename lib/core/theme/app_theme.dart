@@ -5,10 +5,11 @@ import 'package:flutter/services.dart';
 @immutable
 class BrandColors extends ThemeExtension<BrandColors> {
   const BrandColors({
-    required this.gold,
-    required this.onGold,
-    required this.goldText,
-    required this.goldSoft,
+    required this.accent,
+    required this.onAccent,
+    required this.accentText,
+    required this.accentSoft,
+    required this.highlight,
     required this.muted,
     required this.subtle,
     required this.card,
@@ -19,14 +20,18 @@ class BrandColors extends ThemeExtension<BrandColors> {
     required this.heroScrim,
   });
 
-  /// Brand gold for fills (buttons, badges).
-  final Color gold;
-  final Color onGold;
+  /// Brand purple, from the logo's ring, for fills (buttons, badges).
+  final Color accent;
+  final Color onAccent;
 
-  /// Gold for text and icons on the page background; darker in light mode
+  /// Purple for text and icons on the page background; lighter in dark mode
   /// to keep WCAG AA contrast.
-  final Color goldText;
-  final Color goldSoft;
+  final Color accentText;
+  final Color accentSoft;
+
+  /// Brand orange, as in the logo's "Hub". Large text and decoration only:
+  /// it doesn't reach AA contrast for body text on the light background.
+  final Color highlight;
   final Color muted;
   final Color subtle;
   final Color card;
@@ -37,27 +42,29 @@ class BrandColors extends ThemeExtension<BrandColors> {
   final Color heroScrim;
 
   static const light = BrandColors(
-    gold: Color(0xFFC9A84C),
-    onGold: Color(0xFF14110A),
-    goldText: Color(0xFF7D5C12),
-    goldSoft: Color(0xFFF3EAD3),
-    muted: Color(0xFF5E574C),
-    subtle: Color(0xFF8A8276),
+    accent: Color(0xFF4F3DAD),
+    onAccent: Color(0xFFFFFFFF),
+    accentText: Color(0xFF4F3DAD),
+    accentSoft: Color(0xFFECE8FA),
+    highlight: Color(0xFFEA5F17),
+    muted: Color(0xFF5C5966),
+    subtle: Color(0xFF8A8794),
     card: Color(0xFFFFFFFF),
-    border: Color(0xFFE7E1D6),
-    skeleton: Color(0xFFECE7DE),
-    skeletonHighlight: Color(0xFFF7F4EE),
+    border: Color(0xFFE6E3EA),
+    skeleton: Color(0xFFECE9EF),
+    skeletonHighlight: Color(0xFFF7F5F9),
     verified: Color(0xFF1F6FD1),
     heroScrim: Color(0xE6000000),
   );
 
   static const dark = BrandColors(
-    gold: Color(0xFFD4B062),
-    onGold: Color(0xFF14110A),
-    goldText: Color(0xFFDDBD72),
-    goldSoft: Color(0xFF2B2416),
-    muted: Color(0xFFA9A39A),
-    subtle: Color(0xFF7C776F),
+    accent: Color(0xFF8B7BE8),
+    onAccent: Color(0xFF0B0B0D),
+    accentText: Color(0xFFB3A6FF),
+    accentSoft: Color(0xFF241E44),
+    highlight: Color(0xFFFF7A3D),
+    muted: Color(0xFFA8A6B3),
+    subtle: Color(0xFF7D7A88),
     card: Color(0xFF17171B),
     border: Color(0xFF2A2A31),
     skeleton: Color(0xFF1F1F24),
@@ -74,10 +81,11 @@ class BrandColors extends ThemeExtension<BrandColors> {
     if (other == null) return this;
     Color l(Color a, Color b) => Color.lerp(a, b, t)!;
     return BrandColors(
-      gold: l(gold, other.gold),
-      onGold: l(onGold, other.onGold),
-      goldText: l(goldText, other.goldText),
-      goldSoft: l(goldSoft, other.goldSoft),
+      accent: l(accent, other.accent),
+      onAccent: l(onAccent, other.onAccent),
+      accentText: l(accentText, other.accentText),
+      accentSoft: l(accentSoft, other.accentSoft),
+      highlight: l(highlight, other.highlight),
       muted: l(muted, other.muted),
       subtle: l(subtle, other.subtle),
       card: l(card, other.card),
@@ -121,7 +129,7 @@ TextStyle fontStyle(
 );
 
 abstract final class AppTheme {
-  static const _lightBackground = Color(0xFFF7F5F0);
+  static const _lightBackground = Color(0xFFF8F6F7);
   static const _darkBackground = Color(0xFF0B0B0D);
 
   static ThemeData light() => _build(
@@ -129,26 +137,26 @@ abstract final class AppTheme {
     brand: BrandColors.light,
     scheme: const ColorScheme(
       brightness: Brightness.light,
-      primary: Color(0xFF7D5C12),
+      primary: Color(0xFF4F3DAD),
       onPrimary: Colors.white,
-      primaryContainer: Color(0xFFF3EAD3),
-      onPrimaryContainer: Color(0xFF2B2006),
-      secondary: Color(0xFF17140F),
+      primaryContainer: Color(0xFFECE8FA),
+      onPrimaryContainer: Color(0xFF1E1452),
+      secondary: Color(0xFF0F1722),
       onSecondary: Colors.white,
       error: Color(0xFFB3261E),
       onError: Colors.white,
       surface: _lightBackground,
-      onSurface: Color(0xFF17140F),
-      onSurfaceVariant: Color(0xFF5E574C),
+      onSurface: Color(0xFF0F1722),
+      onSurfaceVariant: Color(0xFF5C5966),
       surfaceContainerLowest: Colors.white,
-      surfaceContainerLow: Color(0xFFFBFAF7),
-      surfaceContainer: Color(0xFFF2EFE8),
-      surfaceContainerHigh: Color(0xFFECE8DF),
-      surfaceContainerHighest: Color(0xFFE6E1D7),
-      outline: Color(0xFFD8D1C4),
-      outlineVariant: Color(0xFFE7E1D6),
-      inverseSurface: Color(0xFF17140F),
-      onInverseSurface: Color(0xFFF7F5F0),
+      surfaceContainerLow: Color(0xFFFBFAFC),
+      surfaceContainer: Color(0xFFF1EFF4),
+      surfaceContainerHigh: Color(0xFFEBE8EF),
+      surfaceContainerHighest: Color(0xFFE5E2EA),
+      outline: Color(0xFFD6D2DD),
+      outlineVariant: Color(0xFFE6E3EA),
+      inverseSurface: Color(0xFF0F1722),
+      onInverseSurface: Color(0xFFF8F6F7),
     ),
   );
 
@@ -157,17 +165,17 @@ abstract final class AppTheme {
     brand: BrandColors.dark,
     scheme: const ColorScheme(
       brightness: Brightness.dark,
-      primary: Color(0xFFDDBD72),
-      onPrimary: Color(0xFF14110A),
-      primaryContainer: Color(0xFF2B2416),
-      onPrimaryContainer: Color(0xFFF3E3BC),
-      secondary: Color(0xFFF2EFE9),
+      primary: Color(0xFFB3A6FF),
+      onPrimary: Color(0xFF1B1340),
+      primaryContainer: Color(0xFF241E44),
+      onPrimaryContainer: Color(0xFFE6E0FF),
+      secondary: Color(0xFFF1F0F5),
       onSecondary: Color(0xFF0B0B0D),
       error: Color(0xFFF2B8B5),
       onError: Color(0xFF601410),
       surface: _darkBackground,
-      onSurface: Color(0xFFF2EFE9),
-      onSurfaceVariant: Color(0xFFA9A39A),
+      onSurface: Color(0xFFF1F0F5),
+      onSurfaceVariant: Color(0xFFA8A6B3),
       surfaceContainerLowest: Color(0xFF070708),
       surfaceContainerLow: Color(0xFF111114),
       surfaceContainer: Color(0xFF17171B),
@@ -175,8 +183,8 @@ abstract final class AppTheme {
       surfaceContainerHighest: Color(0xFF26262C),
       outline: Color(0xFF3A3A42),
       outlineVariant: Color(0xFF2A2A31),
-      inverseSurface: Color(0xFFF2EFE9),
-      onInverseSurface: Color(0xFF17140F),
+      inverseSurface: Color(0xFFF1F0F5),
+      onInverseSurface: Color(0xFF0F1722),
     ),
   );
 
@@ -217,7 +225,7 @@ abstract final class AppTheme {
         height: 66,
         backgroundColor: isDark ? const Color(0xFF111114) : Colors.white,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: brand.goldSoft,
+        indicatorColor: brand.accentSoft,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => fontStyle(
@@ -235,7 +243,7 @@ abstract final class AppTheme {
           (states) => IconThemeData(
             size: 24,
             color: states.contains(WidgetState.selected)
-                ? brand.goldText
+                ? brand.accentText
                 : brand.muted,
           ),
         ),
@@ -252,7 +260,7 @@ abstract final class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: brand.card,
-        selectedColor: brand.goldSoft,
+        selectedColor: brand.accentSoft,
         side: BorderSide(color: brand.border),
         shape: const StadiumBorder(),
         labelStyle: fontStyle(
@@ -266,8 +274,8 @@ abstract final class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: brand.gold,
-          foregroundColor: brand.onGold,
+          backgroundColor: brand.accent,
+          foregroundColor: brand.onAccent,
           minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -288,7 +296,7 @@ abstract final class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: brand.goldText,
+          foregroundColor: brand.accentText,
           minimumSize: const Size(48, 44),
           textStyle: fontStyle(AppFonts.body, 14, FontWeight.w600),
         ),
@@ -316,7 +324,7 @@ abstract final class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: brand.goldText, width: 1.5),
+          borderSide: BorderSide(color: brand.accentText, width: 1.5),
         ),
       ),
       dividerTheme: DividerThemeData(
@@ -359,7 +367,9 @@ abstract final class AppTheme {
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      progressIndicatorTheme: ProgressIndicatorThemeData(color: brand.goldText),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: brand.accentText,
+      ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),

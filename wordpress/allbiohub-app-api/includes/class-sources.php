@@ -36,26 +36,44 @@ interface AllBioHub_App_API_Source {
 
 final class AllBioHub_App_API_Sources {
 
-	/** Picks the startup data source, or null when none is found. */
+	/**
+	 * Picks the startup data source, or null when none is found. When more
+	 * than one place looks like startups (for example a "startup claims"
+	 * post type next to the real directory table), the one with the most
+	 * live startups wins.
+	 */
 	public static function detect() {
 		$source = apply_filters( 'allbiohub_app_api_source', null );
 		if ( $source instanceof AllBioHub_App_API_Source ) {
 			return $source;
 		}
-		$post_type = self::find_post_type();
-		if ( $post_type ) {
-			return new AllBioHub_App_API_Post_Type_Source( $post_type );
+		$best       = null;
+		$best_count = -1;
+		foreach ( self::candidates() as $candidate ) {
+			$count = count( $candidate->records() );
+			if ( $count > $best_count ) {
+				$best       = $candidate;
+				$best_count = $count;
+			}
 		}
-		$table = self::find_table();
-		if ( $table ) {
-			return new AllBioHub_App_API_Table_Source( $table['table'], $table['columns'] );
-		}
-		return null;
+		return $best;
 	}
 
-	/** A registered post type that holds startups. */
-	public static function find_post_type() {
-		$best = null;
+	/** Every post type and table that may hold startups. */
+	public static function candidates() {
+		$candidates = array();
+		foreach ( self::find_post_types() as $post_type ) {
+			$candidates[] = new AllBioHub_App_API_Post_Type_Source( $post_type );
+		}
+		foreach ( self::find_tables() as $table ) {
+			$candidates[] = new AllBioHub_App_API_Table_Source( $table['table'], $table['columns'] );
+		}
+		return $candidates;
+	}
+
+	/** Registered post types that may hold startups, likeliest first. */
+	public static function find_post_types() {
+		$found = array();
 		foreach ( get_post_types( array(), 'objects' ) as $type ) {
 			if ( in_array( $type->name, array( 'post', 'page', 'attachment', 'revision', 'nav_menu_item' ), true ) ) {
 				continue;
@@ -71,20 +89,25 @@ final class AllBioHub_App_API_Sources {
 			if ( $type->public ) {
 				++$score;
 			}
-			if ( $score >= 2 && ( ! $best || $score > $best[0] ) ) {
-				$best = array( $score, $type->name );
+			if ( $score >= 2 ) {
+				$found[ $type->name ] = $score;
 			}
 		}
-		return $best ? $best[1] : null;
+		arsort( $found );
+		return array_keys( $found );
 	}
 
-	/** A custom table that holds startups, with its columns. */
-	public static function find_table() {
+	/** The likeliest startup post type, or null. */
+	public static function find_post_type() {
+		$types = self::find_post_types();
+		return $types ? $types[0] : null;
+	}
+
+	/** Custom tables that may hold startups, with their columns. */
+	public static function find_tables() {
 		global $wpdb;
-		$like   = $wpdb->esc_like( $wpdb->prefix ) . '%startup%';
-		$tables = $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $like ) );
-		$best   = null;
-		foreach ( (array) $tables as $table ) {
+		$found  = array();
+		foreach ( self::table_names() as $table ) {
 			$columns = $wpdb->get_col( 'SHOW COLUMNS FROM `' . esc_sql( $table ) . '`' );
 			$cols    = array_map( 'strtolower', (array) $columns );
 			$has     = function ( $names ) use ( $cols ) {
@@ -95,16 +118,33 @@ final class AllBioHub_App_API_Sources {
 			if ( ! in_array( 'id', $cols, true ) || ! $has( array( 'name', 'company_name', 'startup_name', 'title' ) ) || ! $has( array( 'slug', 'startup_slug', 'post_name' ) ) ) {
 				continue;
 			}
-			$count = (int) $wpdb->get_var( 'SELECT COUNT(*) FROM `' . esc_sql( $table ) . '`' );
-			if ( ! $best || $count > $best['count'] ) {
-				$best = array(
-					'table'   => $table,
-					'columns' => $columns,
-					'count'   => $count,
-				);
-			}
+			$found[] = array(
+				'table'   => $table,
+				'columns' => $columns,
+			);
 		}
-		return $best;
+		return $found;
+	}
+
+	/**
+	 * Tables whose names suggest a company directory: "startup", and the
+	 * "companies", "directory" and "listings" names some directory plugins
+	 * use.
+	 */
+	public static function table_names() {
+		global $wpdb;
+		$names = array();
+		foreach ( array( 'startup', 'compan', 'director', 'listing' ) as $word ) {
+			$like  = $wpdb->esc_like( $wpdb->prefix ) . '%' . $wpdb->esc_like( $word ) . '%';
+			$names = array_merge( $names, (array) $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $like ) ) );
+		}
+		return array_values( array_unique( $names ) );
+	}
+
+	/** The first startup table, or null. */
+	public static function find_table() {
+		$tables = self::find_tables();
+		return $tables ? $tables[0] : null;
 	}
 }
 

@@ -103,8 +103,10 @@ FCM topic names. `DisabledNotificationService` is used until Firebase is
 configured; preferences are stored either way.
 
 **Theming.** Material 3 with hand-tuned light and dark palettes (not
-generated or inverted) plus a `BrandColors` extension. Brand gold for fills,
-a darker/lighter "gold text" variant per theme for AA contrast. Playfair
+generated or inverted) plus a `BrandColors` extension, taken from the
+official logo: brand purple for fills, a lighter purple text variant in dark
+mode for AA contrast, and the logo's orange for the "Hub" of the wordmark
+and other large accents. Playfair
 Display for headlines, Inter for UI and body, bundled (no runtime font
 download). System text size is respected and clamped to 0.85–1.6×; the
 reader has its own size setting on top.

@@ -43,6 +43,6 @@ checked against a real WordPress install.
 
 ## Manual checks before a release
 
-See RELEASE.md step 6. The app was built in an environment that could not
+See RELEASE.md step 5. The app was built in an environment that could not
 reach allbiohub.com or install the Android SDK, so run these on a device
 against the live site before the first release.

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="brand_black">#0B0B0D</color>
-    <color name="brand_gold">#D4B062</color>
+    <color name="brand_white">#FFFFFF</color>
+    <!-- Launch screen and the window behind the app; dark in values-night. -->
+    <color name="splash_background">#F8F6F7</color>
 </resources>
