@@ -28,9 +28,16 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-      # Unsigned-for-distribution release APK (debug key) so every change can
-      # be installed and tried. Real releases are signed locally: RELEASE.md.
-      - run: flutter build apk --release --dart-define-from-file=.env.example
+      # Test APK signed with the debug key so every change can be installed
+      # and tried. Signed releases come from the Release workflow (RELEASE.md).
+      - name: Build settings
+        run: tool/ci/write_env.sh .env.ci
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+      - run: flutter build apk --release --dart-define-from-file=.env.ci
       - uses: actions/upload-artifact@v4
         with:
           name: allbiohub-apk

@@ -46,22 +46,32 @@ computer, and back it up.
 
    Copy the line starting `SHA256:`.
 
-## 2. Point the build at it
+## 2. Give GitHub the key and the Firebase settings (once)
 
-Create `android/key.properties` in the project (it's git-ignored):
+GitHub builds the signed app for you, so you don't need Flutter installed.
+The key and passwords are stored as encrypted repository secrets: GitHub
+never shows them again, and they are not part of the code.
 
-```properties
-storeFile=/full/path/to/allbiohub-keys/allbiohub-release.jks
-storePassword=your keystore password
-keyAlias=allbiohub
-keyPassword=your key password (same as above unless you set another)
-```
+1. Turn the key file into text and copy it:
+   - **Windows** (PowerShell, in the `allbiohub-keys` folder):
+     `[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\allbiohub-release.jks")) | Set-Clipboard`
+   - **Mac** (Terminal, in the `allbiohub-keys` folder):
+     `base64 -i allbiohub-release.jks | pbcopy`
+2. On GitHub, open the repository → **Settings → Secrets and variables →
+   Actions → New repository secret**, and add each of these:
 
-On Windows, write the path with forward slashes, for example
-`storeFile=C:/Users/you/allbiohub-keys/allbiohub-release.jks`.
+   | Name | Value |
+   |---|---|
+   | `ANDROID_KEYSTORE_BASE64` | paste what you just copied |
+   | `ANDROID_KEYSTORE_PASSWORD` | the keystore password |
+   | `ANDROID_KEY_PASSWORD` | only if you set a separate key password |
+   | `FIREBASE_PROJECT_ID` | from README → Firebase, step 4 |
+   | `FIREBASE_API_KEY` | 〃 |
+   | `FIREBASE_APP_ID` | 〃 |
+   | `FIREBASE_MESSAGING_SENDER_ID` | 〃 |
 
-Without this file, release builds are signed with the debug key: fine for
-testing, never for publishing. Step 6 below checks which key was used.
+   The Firebase secrets also turn on notifications and analytics in the
+   test APK that every change builds.
 
 ## 3. Set the version
 
@@ -69,61 +79,73 @@ In `pubspec.yaml`: `version: 1.0.0+1` is `versionName+versionCode`.
 Increase the number after `+` for every release (Android refuses to install
 an update with a lower or equal code).
 
-## 4. Production config
+## 4. Build
 
-Copy `.env.example` to `.env.prod` (git-ignored) and fill in:
+On GitHub: **Actions → Release → Run workflow → Run workflow**. When it
+finishes (about 15 minutes), open the run and download:
 
-- `PRIVACY_POLICY_URL`: already `https://allbiohub.com/privacy-policy/`;
-  change it only if the page moves.
-- `CONTACT_EMAIL`: shown in Profile → Contact.
-- The four `FIREBASE_*` values, from README → Firebase → "Connect a new
-  Firebase project". Leave them empty to ship without notifications and
-  analytics.
+- `allbiohub-release-apk`: the APK for the download page,
+- `allbiohub-release-aab`: the bundle for Google Play.
 
-## 5. Check and build
+The run stops with a clear message if the key secrets are missing, and
+refuses to finish if the app came out signed with the debug key. Its summary
+shows the release key's SHA-1 and SHA-256 fingerprints.
 
-```bash
-flutter clean
-flutter pub get
-flutter analyze
-flutter test
-flutter build apk --release --dart-define-from-file=.env.prod
-```
+## 5. Verify before publishing
 
-Output: `build/app/outputs/flutter-apk/app-release.apk`.
+Install the APK on a real phone (copy it over and open it, or
+`adb install -r app-release.apk`). Then walk through: first launch and
+onboarding, Home scroll and pull to refresh, open and share a story, save
+and unsave, search, Startups tab, dark mode, airplane mode (cached stories +
+offline banner), an allbiohub.com link from another app, and a test
+notification (README → Sending a notification).
 
-Smaller per-device downloads (optional):
-`flutter build apk --release --split-per-abi --dart-define-from-file=.env.prod`
-gives one APK per CPU type; offer `arm64-v8a` as the default download.
-
-## 6. Verify before publishing
-
-```bash
-# Confirm the signature is the release key, not debug
-keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
-# Install on a real device
-adb install -r build/app/outputs/flutter-apk/app-release.apk
-```
-
-Then walk through: first launch and onboarding, Home scroll and pull to
-refresh, open and share a story, save and unsave, search, Startups tab,
-dark mode, airplane mode (cached stories + offline banner), and an
-allbiohub.com link from another app.
-
-## 7. Publish
+## 6. Publish
 
 Upload the APK to the download page with its version and SHA-256
-(`sha256sum app-release.apk`) so people can check it. For App Links, make
-sure `/.well-known/assetlinks.json` has the release key fingerprint
+(`sha256sum app-release.apk`, or `certutil -hashfile app-release.apk SHA256`
+on Windows) so people can check it. For App Links, make sure
+`/.well-known/assetlinks.json` has the release key fingerprint
 (README → Deep linking).
+
+## Building on your own computer instead
+
+Needs Flutter installed (README → Setup).
+
+1. Create `android/key.properties` (it's git-ignored):
+
+   ```properties
+   storeFile=/full/path/to/allbiohub-keys/allbiohub-release.jks
+   storePassword=your keystore password
+   keyAlias=allbiohub
+   keyPassword=your key password (same as above unless you set another)
+   ```
+
+   On Windows, write the path with forward slashes, for example
+   `storeFile=C:/Users/you/allbiohub-keys/allbiohub-release.jks`. Without
+   this file, release builds are signed with the debug key: fine for
+   testing, never for publishing.
+2. Copy `.env.example` to `.env.prod` (git-ignored) and fill in the four
+   `FIREBASE_*` values. Don't put them in `.env.example`, which is in Git.
+3. Build and check the signature:
+
+   ```bash
+   flutter pub get
+   flutter analyze
+   flutter test
+   flutter build apk --release --dart-define-from-file=.env.prod
+   keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
+   ```
+
+   Output: `build/app/outputs/flutter-apk/app-release.apk`. For smaller
+   per-device downloads, add `--split-per-abi` and offer `arm64-v8a` as the
+   default download.
 
 ## Moving to Google Play
 
-```bash
-flutter build appbundle --release --dart-define-from-file=.env.prod
-```
-
-Upload `build/app/outputs/bundle/release/app-release.aab`. Use the same
+Upload the `allbiohub-release-aab` from the Release run (or, building
+locally, `flutter build appbundle --release --dart-define-from-file=.env.prod`
+and `build/app/outputs/bundle/release/app-release.aab`). Use the same
 release key as the upload key (or enroll it in Play App Signing) so APK
 users can move to the Play version, and add Play's signing fingerprint to
 `assetlinks.json`. See README → Play Store preparation for the listing items
