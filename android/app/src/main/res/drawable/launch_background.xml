@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-Android 12 launch screen: brand black with the monogram. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/brand_black" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/splash_logo" />
+    </item>
+</layer-list>

@@ -1,0 +1,12 @@
+{
+  "APP_ENV": "production",
+  "WORDPRESS_BASE_URL": "https://allbiohub.com",
+  "STARTUP_API_PATH": "/wp-json/allbiohub/v1",
+  "PRIVACY_POLICY_URL": "",
+  "TERMS_URL": "https://allbiohub.com/terms-and-conditions/",
+  "CONTACT_EMAIL": "",
+  "FIREBASE_PROJECT_ID": "",
+  "FIREBASE_API_KEY": "",
+  "FIREBASE_APP_ID": "",
+  "FIREBASE_MESSAGING_SENDER_ID": ""
+}
