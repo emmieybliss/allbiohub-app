@@ -76,30 +76,73 @@ The app reads the public WordPress REST API; every endpoint is listed in
 
 ## Firebase (notifications and analytics)
 
-The architecture is in place and V1 ships with Firebase off: notification
-preferences are saved, analytics events are logged in debug builds only.
-To connect production Firebase:
+The app already contains push notifications (Firebase Cloud Messaging) and
+anonymous analytics (Firebase Analytics). Both stay off until a build is
+given a Firebase project's settings. Without them the app works normally,
+and Profile → Notifications says push isn't on yet.
 
-1. Create a Firebase project and add an Android app with package
-   `com.allbiohub.app`.
-2. Put the public app options in your env file: `FIREBASE_PROJECT_ID`,
-   `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, `FIREBASE_MESSAGING_SENDER_ID`
-   (these identify the app; they are not secrets, but keep the env file out of git).
-3. `flutter pub add firebase_core firebase_messaging firebase_analytics`.
-4. In `main.dart`, when `AppConfig.hasFirebase`, call
-   `Firebase.initializeApp(options: FirebaseOptions(...))` from the config.
-5. Implement `NotificationService` with FCM (subscribe to
-   `NotificationTopic.topic` names, forward taps with a `url` data field to
-   `DeepLinkParser`) and `AnalyticsService` with Firebase Analytics; override
-   `notificationServiceProvider` / `analyticsProvider` in `main.dart`.
-6. Add `<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>`
-   to `AndroidManifest.xml` (Android 13+ runtime permission; the app asks
-   when someone turns a topic on).
-7. Send notifications to topics (`breaking`, `celebrity`, `technology`,
-   `startups`, `money`, `biography`, `spotlight`) with `data.url` set to the
-   allbiohub.com link to open.
+### Connect a new Firebase project (about 10 minutes, no code)
 
-No server key or service-account JSON ever goes in the app.
+1. Go to [console.firebase.google.com](https://console.firebase.google.com),
+   sign in with the Google account that should own the app, and click
+   **Create a project**. Name it `AllBioHub`. When asked about Google
+   Analytics, leave it **on** and pick or create an Analytics account.
+2. On the project's home page, click the **Android** icon ("Add app").
+   - Android package name: `com.allbiohub.app` (exactly)
+   - App nickname: `AllBioHub Android`
+   - Debug signing certificate: leave empty
+   - Click **Register app**.
+3. Firebase offers `google-services.json`. Download it, but **don't add it
+   to the project** (it's git-ignored and the app doesn't need it). Skip the
+   remaining "Add Firebase SDK" steps; the app already has them.
+4. Open the downloaded `google-services.json` in a text editor and copy four
+   values into your `.env.prod` (copied from `.env.example`):
+
+   | `.env.prod` key | Where it is in `google-services.json` |
+   |---|---|
+   | `FIREBASE_PROJECT_ID` | `project_info.project_id` |
+   | `FIREBASE_MESSAGING_SENDER_ID` | `project_info.project_number` |
+   | `FIREBASE_APP_ID` | `client[0].client_info.mobilesdk_app_id` (starts with `1:`) |
+   | `FIREBASE_API_KEY` | `client[0].api_key[0].current_key` (starts with `AIza`) |
+
+   These identify the app and are safe inside it. They are not the
+   server key or a service-account file, which never go in the app.
+5. Build the release as in RELEASE.md. On first launch the app connects to
+   Firebase; turning on a topic in Profile → Notifications asks for the
+   notification permission and subscribes to that topic.
+6. Optional, for CI builds with Firebase: in GitHub → Settings → Secrets and
+   variables → Actions, add the four values as secrets and pass them to the
+   build step. The CI build uses `.env.example` (Firebase off) by default.
+
+### Sending a notification
+
+In the Firebase console: **Engage → Messaging → New campaign → Firebase
+Notification messages**.
+
+1. Write the title and text (for example the headline).
+2. Target: **Topic**, one of `breaking`, `celebrity`, `technology`,
+   `startups`, `money`, `biography`, `spotlight`.
+3. Under **Additional options → Custom data**, add key `url` with the story's
+   allbiohub.com link. Tapping the notification opens that story (or
+   startup, category or tag) in the app.
+4. Publish.
+
+### What the app sends to Firebase
+
+- Notifications: a device token and the topics the person turned on.
+- Analytics: content events only (story or startup opened, shared or
+  saved, searches, category views) with ids and slugs, never names or
+  emails. The advertising id is removed from the app and ad
+  personalisation is off (AndroidManifest.xml).
+
+### How it's wired
+
+`lib/core/services/firebase_services.dart`: `initializeFirebase` starts
+Firebase from the env values (never from a bundled file),
+`FirebaseNotificationService` handles topics and taps, and
+`FirebaseAnalyticsService` forwards `AnalyticsEvent`s. `main.dart` swaps them
+in only when Firebase started; `app.dart` opens tapped links through
+`DeepLinkParser`.
 
 ## Build
 
@@ -155,9 +198,11 @@ Play signing key's fingerprint too. Test with
 
 Already in place: final application ID, release signing via
 `key.properties`, versioning from `pubspec.yaml`, R8 shrinking, adaptive and
-themed icon, Android 12 splash, INTERNET as the only permission, HTTPS-only
+themed icon, Android 12 splash, only the INTERNET and (asked when a topic is
+turned on) notification permissions, no advertising id, HTTPS-only
 network config, no background work, backup rules that skip the API cache.
-Still needed: a privacy policy URL on the website (none is published today),
+Still needed: the privacy policy page on the website (draft prepared; set
+`PRIVACY_POLICY_URL` once it's live),
 store listing text and screenshots, the content rating questionnaire, the
 Data safety form (the Privacy text in Profile summarizes what the app does),
 and an AAB build (`flutter build appbundle`).

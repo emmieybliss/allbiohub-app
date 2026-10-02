@@ -2,10 +2,15 @@
 // onboarding, with a fake network and in-memory storage.
 import 'package:allbiohub/app.dart';
 import 'package:allbiohub/core/providers.dart';
+import 'package:allbiohub/core/models/user_preferences.dart';
 import 'package:allbiohub/core/routing/app_router.dart';
+import 'package:allbiohub/core/services/notification_service.dart';
 import 'package:allbiohub/features/articles/article_screen.dart';
 import 'package:allbiohub/shared/widgets/app_image.dart';
 import 'package:allbiohub/shared/widgets/article_cards.dart';
+
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,17 +34,28 @@ TestEnv siteEnv() => TestEnv({
 });
 
 /// Launches the whole app and waits for the splash to hand over.
-Future<ProviderContainer> launch(WidgetTester tester, TestEnv env) async {
+Future<ProviderContainer> launch(
+  WidgetTester tester,
+  TestEnv env, {
+  NotificationService? notifications,
+  bool settle = true,
+}) async {
   AppImage.disableNetwork = true;
   await tester.pumpWidget(
     ProviderScope(
       retry: (_, _) => null,
-      overrides: [...env.overrides()],
+      overrides: [
+        ...env.overrides(),
+        if (notifications != null)
+          notificationServiceProvider.overrideWithValue(notifications),
+      ],
       child: const AllBioHubApp(),
     ),
   );
-  await tester.pump(const Duration(milliseconds: 1100));
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pumpAndSettle();
+  }
   return ProviderScope.containerOf(tester.element(find.byType(AllBioHubApp)));
 }
 
@@ -49,6 +65,35 @@ Future<void> tapTab(WidgetTester tester, String label) async {
   );
   await tester.pumpAndSettle();
 }
+
+/// Push notifications that the test taps.
+class FakeNotifications implements NotificationService {
+  final taps = StreamController<NotificationTarget>.broadcast();
+  final synced = <Set<NotificationTopic>>[];
+  var started = false;
+
+  @override
+  bool get isAvailable => true;
+
+  @override
+  Future<void> initialize() async => started = true;
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<void> syncTopics(Set<NotificationTopic> topics) async =>
+      synced.add({...topics});
+
+  @override
+  Stream<NotificationTarget> get opened => taps.stream;
+
+  void tap(String url) => taps.add(NotificationTarget(Uri.parse(url)));
+}
+
+Future<void> finishOnboarding(ProviderContainer container) => container
+    .read(preferencesProvider.notifier)
+    .update((p) => p.copyWith(onboardingComplete: true));
 
 void main() {
   testWidgets('first launch: onboarding, read a story, save it, find it in '
@@ -188,4 +233,47 @@ void main() {
       expect(tester.takeException(), isNull, reason: 'reader');
     });
   }
+
+  testWidgets('a tapped notification opens its story', (tester) async {
+    final push = FakeNotifications();
+    final container = await launch(tester, siteEnv(), notifications: push);
+    await finishOnboarding(container);
+    container.read(routerProvider).go('/home');
+    await tester.pumpAndSettle();
+
+    expect(push.started, isTrue);
+    expect(push.synced, isNotEmpty);
+    push.tap('https://allbiohub.com/tems-biography/');
+    await tester.pumpAndSettle();
+    expect(find.byType(ArticleScreen), findsOneWidget);
+
+    // Back returns to where the reader was.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
+  testWidgets('a notification tapped at launch opens after the splash', (
+    tester,
+  ) async {
+    final push = FakeNotifications();
+    final container = await launch(
+      tester,
+      siteEnv(),
+      notifications: push,
+      settle: false,
+    );
+    await finishOnboarding(container);
+    await tester.pump();
+    push.tap('https://allbiohub.com/tems-biography/');
+    await tester.pump();
+    expect(find.byType(ArticleScreen), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pumpAndSettle();
+    expect(find.byType(ArticleScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsOneWidget);
+  });
 }

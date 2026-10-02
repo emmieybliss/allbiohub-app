@@ -6,28 +6,62 @@ Bundle later.
 
 ## 1. Create the release key (once)
 
-```bash
-keytool -genkey -v -keystore ~/keys/allbiohub-release.jks \
-  -keyalg RSA -keysize 4096 -validity 10000 -alias allbiohub
-```
+The release key proves every future update comes from AllBioHub. Android
+refuses an update signed with a different key, so **if it's lost, people
+must uninstall and reinstall to get updates**. Make it once, on your own
+computer, and back it up.
 
-Keep the `.jks` file and its passwords somewhere safe and backed up (a
-password manager plus an offline copy). **If it's lost, existing installs
-can't be updated** with a new APK. Never commit it.
+1. Install [Android Studio](https://developer.android.com/studio) (it
+   includes the `keytool` program) or any Java 17 JDK.
+2. Open a terminal:
+   - **Windows:** Start → type `cmd` → Command Prompt.
+   - **Mac:** Applications → Utilities → Terminal.
+3. Create a private folder for the key and go into it:
+   - Windows: `mkdir %USERPROFILE%\allbiohub-keys && cd %USERPROFILE%\allbiohub-keys`
+   - Mac: `mkdir -p ~/allbiohub-keys && cd ~/allbiohub-keys`
+4. Run this (on Windows, if `keytool` isn't found, use the full path
+   `"C:\Program Files\Android\Android Studio\jbr\bin\keytool"`; on Mac,
+   `"/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool"`):
 
-## 2. Point Gradle at it
+   ```bash
+   keytool -genkey -v -keystore allbiohub-release.jks -keyalg RSA -keysize 4096 -validity 10000 -alias allbiohub
+   ```
 
-Create `android/key.properties` (git-ignored):
+5. Answer the prompts:
+   - **Keystore password:** a strong password (at least 12 characters).
+     Write it in your password manager now.
+   - **Name, organisation, city, country:** for example `AllBioHub Media`,
+     `AllBioHub`, your city, and the two-letter country code (`NG`).
+   - Type `yes` to confirm. If asked for a separate key password, press
+     Enter to reuse the keystore password.
+6. Back it up in two places: your password manager (attach the
+   `allbiohub-release.jks` file and both passwords) and an offline copy
+   (an encrypted USB stick). **Never** email it, commit it to Git or upload
+   it to a shared drive.
+7. Note the key's fingerprint, needed for App Links (README → Deep linking):
+
+   ```bash
+   keytool -list -v -keystore allbiohub-release.jks -alias allbiohub
+   ```
+
+   Copy the line starting `SHA256:`.
+
+## 2. Point the build at it
+
+Create `android/key.properties` in the project (it's git-ignored):
 
 ```properties
-storeFile=/absolute/path/to/allbiohub-release.jks
-storePassword=…
+storeFile=/full/path/to/allbiohub-keys/allbiohub-release.jks
+storePassword=your keystore password
 keyAlias=allbiohub
-keyPassword=…
+keyPassword=your key password (same as above unless you set another)
 ```
 
+On Windows, write the path with forward slashes, for example
+`storeFile=C:/Users/you/allbiohub-keys/allbiohub-release.jks`.
+
 Without this file, release builds are signed with the debug key: fine for
-testing, not for distribution.
+testing, never for publishing. Step 6 below checks which key was used.
 
 ## 3. Set the version
 
@@ -37,8 +71,14 @@ an update with a lower or equal code).
 
 ## 4. Production config
 
-Create `.env.prod` from `.env.example` (git-ignored) and fill in
-`PRIVACY_POLICY_URL`, `CONTACT_EMAIL` and, if used, the `FIREBASE_*` values.
+Copy `.env.example` to `.env.prod` (git-ignored) and fill in:
+
+- `PRIVACY_POLICY_URL`: the published privacy policy page
+  (for example `https://allbiohub.com/privacy-policy/`).
+- `CONTACT_EMAIL`: shown in Profile → Contact.
+- The four `FIREBASE_*` values, from README → Firebase → "Connect a new
+  Firebase project". Leave them empty to ship without notifications and
+  analytics.
 
 ## 5. Check and build
 

@@ -81,6 +81,26 @@ final notificationServiceProvider = Provider<NotificationService>(
   (ref) => const DisabledNotificationService(),
 );
 
+/// Where a tapped notification asked to go while the splash was still up.
+/// The splash takes it when it moves on.
+class PendingLocationNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String location) => state = location;
+
+  String? take() {
+    final location = state;
+    state = null;
+    return location;
+  }
+}
+
+final pendingLocationProvider =
+    NotifierProvider<PendingLocationNotifier, String?>(
+      PendingLocationNotifier.new,
+    );
+
 /// Settings, persisted on every change.
 class PreferencesNotifier extends Notifier<UserPreferences> {
   @override

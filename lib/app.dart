@@ -1,15 +1,81 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
+import 'core/routing/routes.dart';
+import 'core/services/analytics_service.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 
-class AllBioHubApp extends ConsumerWidget {
+class AllBioHubApp extends ConsumerStatefulWidget {
   const AllBioHubApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AllBioHubApp> createState() => _AllBioHubAppState();
+}
+
+class _AllBioHubAppState extends ConsumerState<AllBioHubApp> {
+  StreamSubscription<NotificationTarget>? _taps;
+
+  @override
+  void initState() {
+    super.initState();
+    final notifications = ref.read(notificationServiceProvider);
+    if (notifications.isAvailable) {
+      _taps = notifications.opened.listen(_openNotification);
+      unawaited(_startNotifications(notifications));
+    }
+  }
+
+  Future<void> _startNotifications(NotificationService service) async {
+    try {
+      await service.initialize();
+      await service.syncTopics(
+        ref.read(preferencesProvider).notificationTopics,
+      );
+    } catch (e) {
+      debugPrint('Notifications not started: $e');
+    }
+  }
+
+  /// Opens the page a tapped notification links to (an allbiohub.com URL).
+  void _openNotification(NotificationTarget target) {
+    if (!mounted) return;
+    ref.read(analyticsProvider).log(AnalyticsEvent.notificationOpen, {
+      'path': target.url.path,
+    });
+    final location =
+        ref.read(deepLinkParserProvider).locationFor(target.url) ?? Routes.home;
+    final router = ref.read(routerProvider);
+    final current = router.routerDelegate.currentConfiguration.uri.path;
+    if (current == Routes.splash || current == Routes.onboarding) {
+      ref.read(pendingLocationProvider.notifier).set(location);
+    } else if (_tabRoots.contains(location)) {
+      router.go(location);
+    } else {
+      router.push(location);
+    }
+  }
+
+  static const _tabRoots = {
+    Routes.home,
+    Routes.discover,
+    Routes.startups,
+    Routes.saved,
+    Routes.profile,
+  };
+
+  @override
+  void dispose() {
+    _taps?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(preferencesProvider.select((p) => p.themeMode));
     return MaterialApp.router(
       title: 'AllBioHub',

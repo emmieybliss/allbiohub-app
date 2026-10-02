@@ -1,7 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- The only permission V1 needs. Add POST_NOTIFICATIONS when push is enabled (see README). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Asked for only when someone turns on a notification topic (Android 13+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Firebase Analytics would add the advertising id permission; the app doesn't use it. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <application
         android:label="AllBioHub"
@@ -49,6 +53,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Analytics stays anonymous: no advertising id, no ad personalisation. -->
+        <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+        <meta-data android:name="google_analytics_default_allow_ad_personalization_signals" android:value="false" />
     </application>
 
     <!-- Package visibility (Android 11+): apps we hand links, email and sharing to. -->

@@ -39,7 +39,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void _continue() {
     if (!mounted) return;
     final onboarded = ref.read(preferencesProvider).onboardingComplete;
-    context.go(onboarded ? Routes.home : Routes.onboarding);
+    final pending = ref.read(pendingLocationProvider.notifier).take();
+    final router = GoRouter.of(context);
+    router.go(onboarded ? Routes.home : Routes.onboarding);
+    // A notification tapped at launch opens on top of Home.
+    if (onboarded && pending != null && pending != Routes.home) {
+      router.push(pending);
+    }
   }
 
   @override

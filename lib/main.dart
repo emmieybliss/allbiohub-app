@@ -6,7 +6,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'app.dart';
 import 'core/cache/cache_store.dart';
 import 'core/cache/local_store.dart';
+import 'core/config/app_config.dart';
 import 'core/providers.dart';
+import 'core/services/analytics_service.dart';
+import 'core/services/firebase_services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +23,9 @@ Future<void> main() async {
     Hive.openBox<String>('settings'),
   ]);
   final info = await PackageInfo.fromPlatform();
+  // Notifications and analytics stay off unless the build has Firebase
+  // settings (README → Firebase).
+  final firebase = await initializeFirebase(AppConfig.fromEnvironment());
 
   runApp(
     ProviderScope(
@@ -31,6 +37,17 @@ Future<void> main() async {
         bookmarkStoreProvider.overrideWithValue(HiveLocalStore(boxes[1])),
         settingsStoreProvider.overrideWithValue(HiveLocalStore(boxes[2])),
         appVersionProvider.overrideWithValue(info.version),
+        if (firebase) ...[
+          notificationServiceProvider.overrideWithValue(
+            FirebaseNotificationService(),
+          ),
+          analyticsProvider.overrideWithValue(
+            CompositeAnalyticsService([
+              FirebaseAnalyticsService(),
+              const DebugAnalyticsService(),
+            ]),
+          ),
+        ],
       ],
       child: const AllBioHubApp(),
     ),
