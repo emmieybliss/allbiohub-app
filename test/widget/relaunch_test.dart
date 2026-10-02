@@ -3,7 +3,6 @@
 // through JSON as they do on the phone).
 import 'dart:convert';
 
-import 'package:allbiohub/app.dart';
 import 'package:allbiohub/core/cache/cache_store.dart';
 import 'package:allbiohub/shared/widgets/article_cards.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +29,10 @@ class JsonCacheStore extends MemoryCacheStore {
 class RelaunchEnv extends TestEnv {
   RelaunchEnv(super.routes);
 
+  final _cache = JsonCacheStore();
+
   @override
-  final cache = JsonCacheStore();
+  JsonCacheStore get cache => _cache;
 }
 
 void main() {
