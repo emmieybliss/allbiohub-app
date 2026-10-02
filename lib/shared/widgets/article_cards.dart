@@ -10,7 +10,7 @@ import 'app_image.dart';
 void openArticle(BuildContext context, Article article) =>
     context.push(Routes.article(article.id), extra: article);
 
-/// Small uppercase category label in brand gold.
+/// Small uppercase category label in brand accent.
 class CategoryLabel extends StatelessWidget {
   const CategoryLabel(this.label, {super.key, this.color});
 
@@ -23,7 +23,7 @@ class CategoryLabel extends StatelessWidget {
     maxLines: 1,
     overflow: TextOverflow.ellipsis,
     style: context.text.labelSmall?.copyWith(
-      color: color ?? context.brand.goldText,
+      color: color ?? context.brand.accentText,
     ),
   );
 }
@@ -97,12 +97,12 @@ class ArticleHeroCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: brand.gold,
+                          color: brand.accent,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: CategoryLabel(
                           article.primaryCategory!.displayName,
-                          color: brand.onGold,
+                          color: brand.onAccent,
                         ),
                       ),
                     const SizedBox(height: 12),

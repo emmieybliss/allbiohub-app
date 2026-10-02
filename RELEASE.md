@@ -73,8 +73,8 @@ an update with a lower or equal code).
 
 Copy `.env.example` to `.env.prod` (git-ignored) and fill in:
 
-- `PRIVACY_POLICY_URL`: the published privacy policy page
-  (for example `https://allbiohub.com/privacy-policy/`).
+- `PRIVACY_POLICY_URL`: already `https://allbiohub.com/privacy-policy/`;
+  change it only if the page moves.
 - `CONTACT_EMAIL`: shown in Profile → Contact.
 - The four `FIREBASE_*` values, from README → Firebase → "Connect a new
   Firebase project". Leave them empty to ship without notifications and

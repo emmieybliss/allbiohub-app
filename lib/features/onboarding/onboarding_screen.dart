@@ -132,7 +132,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             width: i == _index ? 22 : 7,
                             height: 7,
                             decoration: BoxDecoration(
-                              color: i == _index ? brand.gold : brand.border,
+                              color: i == _index ? brand.accent : brand.border,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -193,10 +193,10 @@ class _IntroPage extends StatelessWidget {
                 width: 84,
                 height: 84,
                 decoration: BoxDecoration(
-                  color: brand.goldSoft,
+                  color: brand.accentSoft,
                   borderRadius: BorderRadius.circular(26),
                 ),
-                child: Icon(icon, size: 42, color: brand.goldText),
+                child: Icon(icon, size: 42, color: brand.accentText),
               ),
               const SizedBox(height: 32),
               Text(title, style: context.text.displaySmall),

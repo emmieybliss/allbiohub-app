@@ -177,7 +177,7 @@ class _FeaturedCarouselState extends State<_FeaturedCarousel> {
                   height: 6,
                   decoration: BoxDecoration(
                     color: i == _index
-                        ? context.brand.gold
+                        ? context.brand.accent
                         : context.brand.border,
                     borderRadius: BorderRadius.circular(3),
                   ),

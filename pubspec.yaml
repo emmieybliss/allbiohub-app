@@ -59,6 +59,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/branding/logo_mark.png
+
   fonts:
     - family: PlayfairDisplay
       fonts:

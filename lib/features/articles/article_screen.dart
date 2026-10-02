@@ -185,7 +185,7 @@ class _ReaderAppBar extends ConsumerWidget {
             value: value,
             minHeight: 2,
             backgroundColor: Colors.transparent,
-            color: context.brand.gold,
+            color: context.brand.accent,
             semanticsLabel: 'Reading progress',
           ),
         ),
@@ -338,7 +338,7 @@ class _AuthorAvatar extends StatelessWidget {
     final initial = Center(
       child: Text(
         (name?.isNotEmpty ?? false) ? name![0].toUpperCase() : 'A',
-        style: TextStyle(color: brand.goldText, fontWeight: FontWeight.w700),
+        style: TextStyle(color: brand.accentText, fontWeight: FontWeight.w700),
       ),
     );
     return ExcludeSemantics(
@@ -346,7 +346,7 @@ class _AuthorAvatar extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: brand.goldSoft,
+          color: brand.accentSoft,
           shape: BoxShape.circle,
         ),
         clipBehavior: Clip.antiAlias,

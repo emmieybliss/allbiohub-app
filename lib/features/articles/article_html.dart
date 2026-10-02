@@ -255,7 +255,7 @@ class _Renderer {
                     child: Text(
                       ordered ? '${start + i}.' : '•',
                       style: bodyStyle.copyWith(
-                        color: _brand.goldText,
+                        color: _brand.accentText,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -304,7 +304,7 @@ class _Renderer {
       margin: const EdgeInsets.only(bottom: 22, top: 4),
       padding: const EdgeInsets.fromLTRB(18, 4, 4, 4),
       decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: _brand.gold, width: 3)),
+        border: Border(left: BorderSide(color: _brand.accent, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,7 +480,7 @@ class _Renderer {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Material(
-        color: _brand.goldSoft,
+        color: _brand.accentSoft,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
@@ -489,7 +489,10 @@ class _Renderer {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(Icons.play_circle_outline_rounded, color: _brand.goldText),
+                Icon(
+                  Icons.play_circle_outline_rounded,
+                  color: _brand.accentText,
+                ),
                 const SizedBox(width: 12),
                 Expanded(child: Text(label, style: _text.titleSmall)),
                 Icon(Icons.open_in_new_rounded, size: 18, color: _brand.muted),
@@ -520,7 +523,7 @@ class _Renderer {
               for (final (i, row) in rows.indexed)
                 Container(
                   color: i == 0 && row.querySelector('th') != null
-                      ? _brand.goldSoft
+                      ? _brand.accentSoft
                       : null,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,9 +609,9 @@ class _Renderer {
       case 'a':
         final url = _resolve(node.attributes['href']);
         final linkStyle = style.copyWith(
-          color: _brand.goldText,
+          color: _brand.accentText,
           decoration: TextDecoration.underline,
-          decorationColor: _brand.goldText.withValues(alpha: 0.5),
+          decorationColor: _brand.accentText.withValues(alpha: 0.5),
         );
         if (url == null || !_isSafeLink(url)) {
           for (final c in node.nodes) {
@@ -645,7 +648,7 @@ class _Renderer {
         fontFamily: 'monospace',
         backgroundColor: _brand.skeleton,
       ),
-      'mark' => style.copyWith(backgroundColor: _brand.goldSoft),
+      'mark' => style.copyWith(backgroundColor: _brand.accentSoft),
       'sup' || 'sub' => style.copyWith(fontSize: (style.fontSize ?? 16) * 0.75),
       'small' => style.copyWith(fontSize: (style.fontSize ?? 16) * 0.85),
       _ => style,

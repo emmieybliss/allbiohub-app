@@ -64,7 +64,7 @@ app can be extracted from the APK.
 | `APP_ENV` | `production` | `development` / `staging` / `production` |
 | `WORDPRESS_BASE_URL` | `https://allbiohub.com` | Content source and canonical share links |
 | `STARTUP_API_PATH` | `/wp-json/allbiohub/v1` | Startup directory API base path |
-| `PRIVACY_POLICY_URL` | empty | Website privacy policy (Profile → Privacy) |
+| `PRIVACY_POLICY_URL` | site privacy policy page | Profile → Privacy → full policy; also the Play Console privacy policy link |
 | `TERMS_URL` | site terms page | Profile → Terms |
 | `CONTACT_EMAIL` | empty | Profile → Contact (hidden when empty) |
 | `FIREBASE_*` | empty | Firebase options (below) |
@@ -201,11 +201,18 @@ Already in place: final application ID, release signing via
 themed icon, Android 12 splash, only the INTERNET and (asked when a topic is
 turned on) notification permissions, no advertising id, HTTPS-only
 network config, no background work, backup rules that skip the API cache.
-Still needed: the privacy policy page on the website (draft prepared; set
-`PRIVACY_POLICY_URL` once it's live),
-store listing text and screenshots, the content rating questionnaire, the
+The privacy policy is live at https://allbiohub.com/privacy-policy/ and
+linked from Profile → Privacy; use the same link in the Play Console.
+Still needed: the release key (RELEASE.md), store listing text and screenshots, the content rating questionnaire, the
 Data safety form (the Privacy text in Profile summarizes what the app does),
 and an AAB build (`flutter build appbundle`).
+
+## Brand assets
+
+The launcher icon (adaptive and themed), splash images, Play Store icon and
+in-app logo all come from the official AllBioHub Media logo in
+`tool/brand/allbiohub_media_logo.jpg`. If the logo changes, replace that
+file and run `python3 tool/brand/make_icons.py` (needs Pillow and numpy).
 
 ## Known limitations
 
@@ -217,13 +224,10 @@ and an AAB build (`flutter build appbundle`).
   them; Featured uses sticky posts, else the newest stories.
 - **Coverage is a name match.** Startup coverage searches stories for the
   startup's name; an explicit relationship in the API would be more precise.
-- **Icon is a placeholder monogram** (gold "A") generated from the brand
-  fonts and colours. Replace `android/app/src/main/res/mipmap-*` and
-  `assets/branding/play_store_icon_512.png` with the official logo.
 - **Firebase is not connected** (see above).
 - **No accounts or cloud sync** in V1; bookmarks are on-device.
-- **Website gaps:** no Technology/Spotlight categories and no privacy policy
-  page exist on the site yet; the app adapts to whatever categories exist.
+- **Website gaps:** no Technology/Spotlight categories exist on the site
+  yet; the app adapts to whatever categories exist.
 
 ## Troubleshooting
 

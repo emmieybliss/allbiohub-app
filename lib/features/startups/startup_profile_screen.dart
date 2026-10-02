@@ -222,10 +222,10 @@ class _Profile extends ConsumerWidget {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        backgroundColor: brand.goldSoft,
+                        backgroundColor: brand.accentSoft,
                         child: Text(
                           f.name.isEmpty ? '?' : f.name[0],
-                          style: TextStyle(color: brand.goldText),
+                          style: TextStyle(color: brand.accentText),
                         ),
                       ),
                       title: Text(f.name),
