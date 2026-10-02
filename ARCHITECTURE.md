@@ -87,8 +87,8 @@ in-app; other allbiohub.com pages (forms, account) open in an in-app
 browser tab (Custom Tabs), which can't bounce back into the app via App
 Links; external sites open in the browser or their app.
 
-**Startups.** `StartupRepository` targets the proposed read-only endpoint
-(API.md). A 404 on the route raises `StartupDirectoryUnavailable`, which
+**Startups.** `StartupRepository` reads the read-only endpoint (API.md)
+served by the WordPress add-on in `wordpress/allbiohub-app-api`. A 404 on the route raises `StartupDirectoryUnavailable`, which
 every startup surface turns into an honest "coming soon" state with links
 to the website. Rails, filters and badges render only from real data.
 

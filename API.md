@@ -75,19 +75,19 @@ Not used: `ab-analytics/v1/*` (admin-only), any authenticated route.
 Trending and Editor's Picks are not shown because no public endpoint
 provides them; Featured uses sticky posts, falling back to the newest stories.
 
-## Startup directory API (required, not yet on the website)
+## Startup directory API (WordPress add-on)
 
-The startup database is not exposed by any REST route. The app is built
-against the read-only contract below under `STARTUP_API_PATH`
-(default `/wp-json/allbiohub/v1`). Until it exists, the Startups tab explains
-that the directory is coming and links to the website; nothing is faked.
+The website's startup plugin exposes no REST route, so the read-only
+routes below come from a separate add-on plugin in this repository,
+[wordpress/allbiohub-app-api](wordpress/allbiohub-app-api/README.md), under
+`STARTUP_API_PATH` (default `/wp-json/allbiohub/v1`). The plugin finds the
+startup plugin's post type or table, sends only the public fields listed
+here, hides unpublished listings, and changes no existing data, pages or
+URLs. It stays off (404) until an admin checks its preview and switches it
+on under Tools. Responses send `Cache-Control: public, max-age=300`.
 
-Recommended implementation: a small, separate WordPress plugin that
-registers these `GET` routes (`register_rest_route`, `permission_callback`
-returning `true`), reads from wherever the existing startup plugin stores
-its data, and returns only public fields. It adds routes and changes no
-existing data, pages or URLs. Responses should send
-`Cache-Control: public, max-age=300` so LiteSpeed can cache them.
+Until it's on, the Startups tab explains that the directory is coming and
+links to the website; nothing is faked.
 
 ### `GET /startups`
 

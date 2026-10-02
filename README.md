@@ -8,8 +8,9 @@ and the African startup directory, in a native Flutter app (no WebView).
 - **Stories:** Home feed, Discover, search, a native article reader with text
   size and dark mode, sharing, and saved stories that work offline.
 - **Startups:** discovery rails, directory search and filters, and profiles
-  with AllBioHub coverage. These need the startup API described in
-  [API.md](API.md), which the website doesn't have yet.
+  with AllBioHub coverage. These read the startup API from the WordPress
+  add-on in [wordpress/allbiohub-app-api](wordpress/allbiohub-app-api/README.md),
+  which has to be installed on the website once.
 
 Docs: [ARCHITECTURE.md](ARCHITECTURE.md) · [API.md](API.md) ·
 [RELEASE.md](RELEASE.md) · [TESTING.md](TESTING.md)
@@ -163,9 +164,10 @@ and an AAB build (`flutter build appbundle`).
 
 ## Known limitations
 
-- **Startup directory needs its API.** Until `/wp-json/allbiohub/v1` exists
-  (API.md), the Startups tab, startup search and profiles show a "coming
-  soon" state with links to the website.
+- **Startup directory needs the add-on.** Until the AllBioHub App API plugin
+  is installed and switched on (wordpress/allbiohub-app-api), the Startups
+  tab, startup search and profiles show a "coming soon" state with links to
+  the website.
 - **No trending or editor's picks.** The site has no public endpoint for
   them; Featured uses sticky posts, else the newest stories.
 - **Coverage is a name match.** Startup coverage searches stories for the
@@ -186,5 +188,5 @@ and an AAB build (`flutter build appbundle`).
 | Release build signed with the debug key | `android/key.properties` is missing; see RELEASE.md |
 | Links open a chooser instead of the app | `assetlinks.json` missing or fingerprint wrong; check `adb shell pm get-app-links com.allbiohub.app` |
 | Everything shows "You're offline" | Check `WORDPRESS_BASE_URL`, and that the device can open the site in a browser |
-| Startups tab says "on its way" | Expected until the startup API is installed (API.md) |
+| Startups tab says "on its way" | Install the AllBioHub App API plugin and switch it on under Tools (wordpress/allbiohub-app-api) |
 | Old content after a site change | Profile → Clear cached content, or pull to refresh |

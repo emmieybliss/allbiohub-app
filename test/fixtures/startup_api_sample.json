@@ -1,0 +1,120 @@
+{
+    "list": [
+        {
+            "id": 5,
+            "slug": "paystack",
+            "name": "Paystack",
+            "link": "https://allbiohub.com/startups/paystack/",
+            "tagline": "Modern payments for Africa.",
+            "description": "Modern payments for Africa.",
+            "logo": null,
+            "industry": "Fintech, Payments",
+            "country": "Nigeria",
+            "city": "Lagos",
+            "founded": 2015,
+            "stage": null,
+            "funding": null,
+            "business_model": null,
+            "employees": null,
+            "status": null,
+            "website": null,
+            "social": {
+                "linkedin": "https://linkedin.com/company/paystack"
+            },
+            "founders": [
+                {
+                    "name": "Shola Akinlade",
+                    "role": null,
+                    "url": null
+                },
+                {
+                    "name": "Ezra Olubi",
+                    "role": null,
+                    "url": null
+                }
+            ],
+            "products": [],
+            "verified": true,
+            "claimed": false,
+            "featured": true,
+            "created_at": "2026-10-02T18:42:24Z",
+            "updated_at": "2026-10-02T18:42:24Z",
+            "verified_at": null
+        },
+        {
+            "id": 4,
+            "slug": "vast",
+            "name": "Vast Space",
+            "link": "https://allbiohub.com/startups/vast/",
+            "tagline": "Haven-1, a commercial space station.",
+            "description": "Haven-1, a commercial space station.",
+            "logo": null,
+            "industry": "Habitats",
+            "country": "United States",
+            "city": null,
+            "founded": 2021,
+            "stage": "Series A",
+            "funding": "Founder funding",
+            "business_model": null,
+            "employees": null,
+            "status": "Active",
+            "website": "https://vastspace.com",
+            "social": {},
+            "founders": [],
+            "products": [],
+            "verified": true,
+            "claimed": false,
+            "featured": false,
+            "created_at": "2026-10-02T18:42:24Z",
+            "updated_at": "2026-10-02T18:42:37Z",
+            "verified_at": null
+        }
+    ],
+    "filters": {
+        "industries": [
+            {
+                "value": "Fintech",
+                "label": "Fintech",
+                "count": 1
+            },
+            {
+                "value": "Habitats",
+                "label": "Habitats",
+                "count": 1
+            },
+            {
+                "value": "Payments",
+                "label": "Payments",
+                "count": 1
+            }
+        ],
+        "countries": [
+            {
+                "value": "Nigeria",
+                "label": "Nigeria",
+                "count": 1
+            },
+            {
+                "value": "United States",
+                "label": "United States",
+                "count": 1
+            }
+        ],
+        "stages": [
+            {
+                "value": "Series A",
+                "label": "Series A",
+                "count": 1
+            }
+        ],
+        "funding": [
+            {
+                "value": "Founder funding",
+                "label": "Founder funding",
+                "count": 1
+            }
+        ],
+        "business_models": [],
+        "employees": []
+    }
+}

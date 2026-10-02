@@ -36,3 +36,29 @@ jobs:
           name: allbiohub-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
+  wordpress-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: none
+      - name: Lint
+        run: find wordpress/allbiohub-app-api -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Unit tests
+        run: php wordpress/allbiohub-app-api/tests/run.php
+      - name: Package
+        if: matrix.php == '8.3'
+        run: cd wordpress && zip -r ../allbiohub-app-api.zip allbiohub-app-api -x 'allbiohub-app-api/tests/*'
+      - uses: actions/upload-artifact@v4
+        if: matrix.php == '8.3'
+        with:
+          name: allbiohub-app-api-plugin
+          path: allbiohub-app-api.zip
+          retention-days: 30

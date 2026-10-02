@@ -26,8 +26,20 @@ storage.
 | Utilities | Plain text, reading time, relative dates, share text uses canonical URLs, startup filter state (`text_utils_test`) |
 | Article rendering | Paragraphs, headings, lists, quotes; scripts/forms dropped; relative and unsafe links; embeds; captions; lazy-load images (`article_html_test`) |
 | Screens | Saved empty and filled, Home success, offline error and retry, offline cache fallback, reader content and saving, Startups without API, dark mode (`screens_test`) |
+| Startup API contract | The app parses real output from the WordPress add-on (`startup_contract_test`) |
 | Accessibility | Light and dark text colours meet WCAG AA contrast (`theme_test`) |
 | User journeys | Whole app with its router: first launch and onboarding, open a story, save it and find it in Saved, allbiohub.com links, every tab, dark mode, search; phone and small-phone screens at the largest text size without overflow (`journeys_test`) |
+
+## WordPress add-on
+
+```bash
+php wordpress/allbiohub-app-api/tests/run.php
+```
+
+Field mapping, privacy (only contract fields are ever sent), search,
+filters, sorting and pagination. CI runs these on PHP 7.4 and 8.3 and
+uploads the installable plugin zip. See the plugin's README for what was
+checked against a real WordPress install.
 
 ## Manual checks before a release
 
