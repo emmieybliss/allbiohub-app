@@ -37,7 +37,7 @@ an update with a lower or equal code).
 
 ## 4. Production config
 
-Create `env/prod.json` from `env/example.json` (git-ignored) and fill in
+Create `.env.prod` from `.env.example` (git-ignored) and fill in
 `PRIVACY_POLICY_URL`, `CONTACT_EMAIL` and, if used, the `FIREBASE_*` values.
 
 ## 5. Check and build
@@ -47,13 +47,13 @@ flutter clean
 flutter pub get
 flutter analyze
 flutter test
-flutter build apk --release --dart-define-from-file=env/prod.json
+flutter build apk --release --dart-define-from-file=.env.prod
 ```
 
 Output: `build/app/outputs/flutter-apk/app-release.apk`.
 
 Smaller per-device downloads (optional):
-`flutter build apk --release --split-per-abi --dart-define-from-file=env/prod.json`
+`flutter build apk --release --split-per-abi --dart-define-from-file=.env.prod`
 gives one APK per CPU type; offer `arm64-v8a` as the default download.
 
 ## 6. Verify before publishing
@@ -80,7 +80,7 @@ sure `/.well-known/assetlinks.json` has the release key fingerprint
 ## Moving to Google Play
 
 ```bash
-flutter build appbundle --release --dart-define-from-file=env/prod.json
+flutter build appbundle --release --dart-define-from-file=.env.prod
 ```
 
 Upload `build/app/outputs/bundle/release/app-release.aab`. Use the same

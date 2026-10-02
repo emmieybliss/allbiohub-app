@@ -28,8 +28,8 @@ Application ID: `com.allbiohub.app`. App name: `AllBioHub`.
 
 ```bash
 flutter pub get
-cp env/example.json env/dev.json      # edit if needed; env/*.json is git-ignored
-flutter run --dart-define-from-file=env/dev.json
+cp .env.example .env.dev   # edit if needed; .env.* files are git-ignored
+flutter run --dart-define-from-file=.env.dev
 ```
 
 Running without `--dart-define-from-file` uses production defaults
@@ -105,8 +105,8 @@ No server key or service-account JSON ever goes in the app.
 ```bash
 flutter analyze
 flutter test
-flutter build apk --debug --dart-define-from-file=env/prod.json      # debug APK
-flutter build apk --release --dart-define-from-file=env/prod.json    # release APK
+flutter build apk --debug --dart-define-from-file=.env.prod      # debug APK
+flutter build apk --release --dart-define-from-file=.env.prod    # release APK
 ```
 
 Output: `build/app/outputs/flutter-apk/`. Signing and distribution:

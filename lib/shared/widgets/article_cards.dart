@@ -199,6 +199,23 @@ class ArticleRailCard extends StatelessWidget {
   final Article article;
   final double width;
 
+  /// Height a rail of these cards needs: the image plus a label, a
+  /// three-line headline and the meta line at the reader's text size.
+  static double railHeight(BuildContext context, {double width = 250}) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final text = context.text;
+    double lines(TextStyle? style, int count) =>
+        count * scaler.scale(style?.fontSize ?? 14) * (style?.height ?? 1.4);
+    return width * 10 / 16 +
+        10 +
+        lines(text.labelSmall, 1) +
+        4 +
+        lines(text.titleMedium, 3) +
+        6 +
+        lines(text.bodySmall, 1) +
+        8;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(

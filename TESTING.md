@@ -4,7 +4,7 @@
 flutter analyze
 flutter test                 # everything
 flutter test test/unit       # models, API client, repositories, routing
-flutter test test/widget     # rendering and screens
+flutter test test/widget     # rendering, screens and user journeys
 ```
 
 Tests never touch the real website. `test/helpers/fake_http.dart` plugs a
@@ -27,6 +27,7 @@ storage.
 | Article rendering | Paragraphs, headings, lists, quotes; scripts/forms dropped; relative and unsafe links; embeds; captions; lazy-load images (`article_html_test`) |
 | Screens | Saved empty and filled, Home success, offline error and retry, offline cache fallback, reader content and saving, Startups without API, dark mode (`screens_test`) |
 | Accessibility | Light and dark text colours meet WCAG AA contrast (`theme_test`) |
+| User journeys | Whole app with its router: first launch and onboarding, open a story, save it and find it in Saved, allbiohub.com links, every tab, dark mode, search; phone and small-phone screens at the largest text size without overflow (`journeys_test`) |
 
 ## Manual checks before a release
 

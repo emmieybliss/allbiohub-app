@@ -351,9 +351,15 @@ class SearchLauncher extends StatelessWidget {
               children: [
                 Icon(Icons.search_rounded, color: brand.muted),
                 const SizedBox(width: 12),
-                Text(
-                  hint,
-                  style: context.text.bodyMedium?.copyWith(color: brand.subtle),
+                Expanded(
+                  child: Text(
+                    hint,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.bodyMedium?.copyWith(
+                      color: brand.subtle,
+                    ),
+                  ),
                 ),
               ],
             ),

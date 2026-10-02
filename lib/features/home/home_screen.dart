@@ -229,7 +229,7 @@ class _CategoryRail extends ConsumerWidget {
               context.push(Routes.category(category.slug), extra: category),
         ),
         SizedBox(
-          height: 286,
+          height: ArticleRailCard.railHeight(context),
           child: items == null
               ? Skeleton(
                   child: ListView.separated(

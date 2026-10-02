@@ -52,7 +52,7 @@ key.properties
 *.jks
 *.keystore
 .env
-env/*.json
-!env/example.json
+.env.*
+!.env.example
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist

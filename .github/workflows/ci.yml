@@ -30,7 +30,7 @@ jobs:
 
       # Unsigned-for-distribution release APK (debug key) so every change can
       # be installed and tried. Real releases are signed locally: RELEASE.md.
-      - run: flutter build apk --release --dart-define-from-file=env/example.json
+      - run: flutter build apk --release --dart-define-from-file=.env.example
       - uses: actions/upload-artifact@v4
         with:
           name: allbiohub-apk

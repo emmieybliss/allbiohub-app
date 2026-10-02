@@ -1,7 +1,7 @@
 /// Build-time configuration.
 ///
-/// Values come from `--dart-define` or `--dart-define-from-file=env/<name>.json`
-/// (see `env/example.json`). Only public configuration belongs here: never put
+/// Values come from `--dart-define` or `--dart-define-from-file=.env.<name>`
+/// (see `.env.example`). Only public configuration belongs here: never put
 /// admin credentials, API secrets or private keys in the app.
 class AppConfig {
   const AppConfig({

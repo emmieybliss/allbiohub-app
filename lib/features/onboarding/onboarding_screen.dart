@@ -84,7 +84,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               padding: const EdgeInsets.fromLTRB(20, 8, 8, 0),
               child: Row(
                 children: [
-                  const Wordmark(size: 20),
+                  const Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Wordmark(size: 20),
+                    ),
+                  ),
                   const Spacer(),
                   TextButton(onPressed: _finish, child: const Text('Skip')),
                 ],
@@ -134,12 +140,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                   ),
                   const Spacer(),
-                  FilledButton(
-                    onPressed: _next,
-                    child: Text(
-                      last
-                          ? (_interests.isEmpty ? 'Start reading' : 'Continue')
-                          : 'Next',
+                  Flexible(
+                    flex: 8,
+                    child: FilledButton(
+                      onPressed: _next,
+                      child: Text(
+                        last
+                            ? (_interests.isEmpty
+                                  ? 'Start reading'
+                                  : 'Continue')
+                            : 'Next',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ],
@@ -166,32 +179,38 @@ class _IntroPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brand = context.brand;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              color: brand.goldSoft,
-              borderRadius: BorderRadius.circular(26),
-            ),
-            child: Icon(icon, size: 42, color: brand.goldText),
+    // Centred when it fits; scrolls on short screens or large text.
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  color: brand.goldSoft,
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: Icon(icon, size: 42, color: brand.goldText),
+              ),
+              const SizedBox(height: 32),
+              Text(title, style: context.text.displaySmall),
+              const SizedBox(height: 16),
+              Text(
+                body,
+                style: context.text.bodyLarge?.copyWith(
+                  color: brand.muted,
+                  fontSize: 17,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 32),
-          Text(title, style: context.text.displaySmall),
-          const SizedBox(height: 16),
-          Text(
-            body,
-            style: context.text.bodyLarge?.copyWith(
-              color: brand.muted,
-              fontSize: 17,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

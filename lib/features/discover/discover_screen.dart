@@ -82,9 +82,9 @@ class DiscoverScreen extends ConsumerWidget {
               AsyncData(:final value) => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverGrid.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 220,
-                    mainAxisExtent: 104,
+                    mainAxisExtent: _CategoryTile.height(context),
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -179,6 +179,21 @@ class _CategoryTile extends StatelessWidget {
 
   final Category category;
 
+  /// Padding and icon, plus a two-line name and the story count at the
+  /// reader's text size (Android scales large text non-linearly, so each
+  /// style is scaled on its own).
+  static double height(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    double line(TextStyle? style) =>
+        scaler.scale(style?.fontSize ?? 14) * (style?.height ?? 1.4);
+    return 28 +
+        26 +
+        8 +
+        2 * line(context.text.titleSmall) +
+        line(context.text.bodySmall) +
+        4;
+  }
+
   @override
   Widget build(BuildContext context) {
     final brand = context.brand;
@@ -209,7 +224,12 @@ class _CategoryTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: context.text.titleSmall,
               ),
-              Text('${category.count} stories', style: context.text.bodySmall),
+              Text(
+                '${category.count} stories',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.text.bodySmall,
+              ),
             ],
           ),
         ),
@@ -237,7 +257,7 @@ class _PeopleRail extends ConsumerWidget {
               context.push(Routes.category(category.slug), extra: category),
         ),
         SizedBox(
-          height: 286,
+          height: ArticleRailCard.railHeight(context, width: 220),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
