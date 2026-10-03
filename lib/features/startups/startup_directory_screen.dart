@@ -65,17 +65,9 @@ class _StartupDirectoryScreenState
             initialValue: _query.sort,
             onSelected: (s) =>
                 setState(() => _query = _query.copyWith(sort: s)),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: StartupSort.newest, child: Text('Newest')),
-              PopupMenuItem(
-                value: StartupSort.updated,
-                child: Text('Recently updated'),
-              ),
-              PopupMenuItem(
-                value: StartupSort.verified,
-                child: Text('Recently verified'),
-              ),
-              PopupMenuItem(value: StartupSort.name, child: Text('Name A–Z')),
+            itemBuilder: (_) => [
+              for (final sort in StartupSort.values)
+                PopupMenuItem(value: sort, child: Text(sort.label)),
             ],
           ),
         ],

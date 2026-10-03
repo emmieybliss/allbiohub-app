@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/article.dart';
+import '../../core/models/paginated.dart';
 import '../../core/models/startup.dart';
 import '../../core/providers.dart';
 import '../../shared/paged_list.dart';
@@ -15,6 +16,13 @@ final startupRailProvider = FutureProvider.family<List<Startup>, StartupQuery>((
       .list(query, perPage: 10);
   return page.items;
 });
+
+/// The first page of a directory query, with the total the API reports.
+final startupPageProvider =
+    FutureProvider.family<Paginated<Startup>, StartupQuery>(
+      (ref, query) =>
+          ref.watch(startupRepositoryProvider).list(query, perPage: 10),
+    );
 
 /// Filter values present in the directory.
 final startupFiltersProvider = FutureProvider<StartupFilterOptions>(

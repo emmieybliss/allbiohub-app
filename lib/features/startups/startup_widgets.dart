@@ -109,38 +109,50 @@ class StartupBadges extends StatelessWidget {
 }
 
 class _Facts extends StatelessWidget {
-  const _Facts(this.startup);
+  const _Facts(this.startup, {this.singleLine = false});
 
   final Startup startup;
+
+  /// In fixed-height rails the facts stay on one line.
+  final bool singleLine;
 
   @override
   Widget build(BuildContext context) {
     final facts = [
       startup.industry,
       startup.location,
+      if (startup.foundedYear != null) 'Founded ${startup.foundedYear}',
       startup.stage,
       startup.funding,
     ].whereType<String>().toSet().toList();
     if (facts.isEmpty) return const SizedBox.shrink();
+    Widget chip(String f) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: context.brand.border),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        f,
+        style: context.text.labelMedium,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+    if (singleLine) {
+      return Row(
+        children: [
+          for (final (i, f) in facts.take(2).indexed) ...[
+            if (i > 0) const SizedBox(width: 6),
+            Flexible(child: chip(f)),
+          ],
+        ],
+      );
+    }
     return Wrap(
       spacing: 6,
       runSpacing: 6,
-      children: [
-        for (final f in facts.take(3))
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: context.brand.border),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              f,
-              style: context.text.labelMedium,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-      ],
+      children: [for (final f in facts.take(4)) chip(f)],
     );
   }
 }
@@ -150,6 +162,8 @@ class StartupCard extends StatelessWidget {
   const StartupCard({super.key, required this.startup, this.width});
 
   final Startup startup;
+
+  /// Set in rails, where the card has a fixed height.
   final double? width;
 
   @override
@@ -226,7 +240,7 @@ class StartupCard extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 12),
-                _Facts(startup),
+                _Facts(startup, singleLine: width != null),
                 const SizedBox(height: 10),
                 Row(
                   children: [

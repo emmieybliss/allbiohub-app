@@ -1,12 +1,13 @@
 # AllBioHub App API (WordPress plugin)
 
 Shares the allbiohub.com startup directory with the AllBioHub app through
-three read-only routes:
+four read-only routes:
 
 ```
 GET /wp-json/allbiohub/v1/startups           list, search, filters, sorting
 GET /wp-json/allbiohub/v1/startups/filters   industries, countries, stages, …
 GET /wp-json/allbiohub/v1/startups/{slug}    one startup
+GET /wp-json/allbiohub/v1/status             source in use and counts, for troubleshooting
 ```
 
 The contract is in [API.md](../../API.md).

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AllBioHub App API
  * Description:       Read-only startup directory API for the AllBioHub mobile app. Adds GET routes under /wp-json/allbiohub/v1/ and changes nothing else on the site.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            AllBioHub
@@ -14,6 +14,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+define( 'ALLBIOHUB_APP_API_VERSION', '1.0.2' );
+
 require_once __DIR__ . '/includes/class-mapper.php';
 require_once __DIR__ . '/includes/class-directory.php';
 require_once __DIR__ . '/includes/class-sources.php';
@@ -24,7 +26,7 @@ final class AllBioHub_App_API {
 
 	/** Option: the API answers only after an admin has checked the preview and switched it on. */
 	const OPTION_ENABLED = 'allbiohub_app_api_enabled';
-	const CACHE_KEY      = 'allbiohub_app_api_startups';
+	const CACHE_KEY      = 'allbiohub_app_api_startups_v2';
 	const CACHE_TTL      = 600;
 
 	public static function boot() {
@@ -80,7 +82,10 @@ final class AllBioHub_App_API {
 		}
 		$built    = self::build( $source );
 		$startups = $built['startups'];
-		set_transient( self::CACHE_KEY, $startups, self::CACHE_TTL );
+		// An empty result isn't cached, so a fix on the website shows at once.
+		if ( $startups ) {
+			set_transient( self::CACHE_KEY, $startups, self::CACHE_TTL );
+		}
 		return $startups;
 	}
 

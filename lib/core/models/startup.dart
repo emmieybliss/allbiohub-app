@@ -203,7 +203,20 @@ class StartupFilterOptions {
   final List<FilterOption> fundings;
 }
 
-enum StartupSort { newest, updated, name, verified }
+/// The website's sort options, in its order. [name] is what the API expects.
+enum StartupSort {
+  newest('Recently added'),
+  updated('Recently updated'),
+  founded('Founded recently'),
+  oldest('Oldest'),
+  name('Alphabetical'),
+  featured('Featured first'),
+  verified('Verified first');
+
+  const StartupSort(this.label);
+
+  final String label;
+}
 
 /// A directory query. Null fields are not sent.
 class StartupQuery {

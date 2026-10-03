@@ -169,15 +169,18 @@ final class AllBioHub_App_API_Post_Type_Source implements AllBioHub_App_API_Sour
 	}
 
 	public function records() {
-		$ids = get_posts(
-			array(
-				'post_type'        => $this->post_type,
-				'post_status'      => 'publish',
-				'has_password'     => false,
-				'posts_per_page'   => -1,
-				'fields'           => 'ids',
-				'no_found_rows'    => true,
-				'suppress_filters' => false,
+		global $wpdb;
+		// Read straight from the posts table: plugins that hook post queries
+		// (languages, memberships, "hide from guests") answered the
+		// anonymous REST request with no startups while the admin preview
+		// saw them all.
+		$ids = array_map(
+			'intval',
+			$wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND post_password = '' ORDER BY post_date DESC",
+					$this->post_type
+				)
 			)
 		);
 		if ( ! $ids ) {
