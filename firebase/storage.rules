@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Profile pictures and images attached to submissions. A person can upload
+// only into their own folder, only images, and only up to 5 MB. Profile
+// pictures are public; submission images are visible to their owner and
+// editors.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp)')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    match /avatars/{uid}/{file} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && (request.resource == null || isImage());
+    }
+
+    match /submissions/{uid}/{file} {
+      allow read: if request.auth != null
+        && (request.auth.uid == uid || request.auth.token.admin == true);
+      allow create: if request.auth != null && request.auth.uid == uid && isImage();
+      allow update, delete: if false;
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,159 @@
+rules_version = '2';
+
+// AllBioHub community data.
+//
+// The app never writes community data directly: every change (comments,
+// reactions, follows, votes, submissions, usernames, reports) goes through
+// the Cloud Functions in functions/, which check the signed-in user, validate
+// the input, apply rate limits and keep counters consistent. These rules only
+// decide who may READ what, plus one narrow exception: a person may mark
+// their own notifications as read.
+//
+// Admins are users with the custom claim `admin: true` (COMMUNITY.md →
+// Admin access). Nothing here lets a normal user read reports, rate limits,
+// moderation notes, other people's private settings or voter identities.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    // Remote feature switches and community settings. Public, read-only.
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Public profile. Private profiles are visible to their owner and admins
+    // only (comments still show the author's name and username).
+    match /profiles/{uid} {
+      allow read: if resource.data.visibility == 'public'
+        || isUser(uid) || isAdmin();
+      allow write: if false;
+    }
+
+    // Private account data: settings, notification preferences, follows,
+    // saved items, blocks, notifications. Owner (and admins) only.
+    match /users/{uid} {
+      allow read: if isUser(uid) || isAdmin();
+      allow write: if false;
+
+      match /notifications/{id} {
+        allow read: if isUser(uid) || isAdmin();
+        // Only the `read` flag may change, and only from false to true.
+        allow update: if isUser(uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+          && request.resource.data.read == true;
+        allow create, delete: if false;
+      }
+
+      // Device tokens for push are written and read by functions only.
+      match /devices/{id} {
+        allow read, write: if false;
+      }
+
+      match /{sub}/{id} {
+        allow read: if (isUser(uid) || isAdmin()) && sub != 'devices';
+        allow write: if false;
+      }
+    }
+
+    // Username → uid index, used by functions to guarantee uniqueness.
+    match /usernames/{name} {
+      allow read, write: if false;
+    }
+
+    // Aggregate reaction and comment counts per WordPress article id.
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if false;
+
+      // A person's own reaction. Nobody else can see who reacted.
+      match /reactions/{uid} {
+        allow read: if isUser(uid);
+        allow write: if false;
+      }
+    }
+
+    // Comments and replies. Only approved comments are public. Authors see
+    // their own pending ones; admins see everything.
+    match /comments/{commentId} {
+      allow read: if resource.data.status == 'approved'
+        || (signedIn() && resource.data.authorUid == request.auth.uid)
+        || isAdmin();
+      allow write: if false;
+
+      match /likes/{uid} {
+        allow read: if isUser(uid);
+        allow write: if false;
+      }
+    }
+
+    // Follower counts for startups, founders and topics.
+    match /followTargets/{key} {
+      allow read: if true;
+      allow write: if false;
+
+      match /followers/{uid} {
+        allow read, write: if false;
+      }
+    }
+
+    // Editorial polls and Question of the Day. Drafts and scheduled polls
+    // stay hidden until published.
+    match /polls/{pollId} {
+      allow read: if resource.data.status in ['active', 'closed'] || isAdmin();
+      allow write: if false;
+
+      // A person's own vote. Individual votes are never public.
+      match /votes/{uid} {
+        allow read: if isUser(uid);
+        allow write: if false;
+      }
+    }
+
+    // Story submissions, startup submissions and startup claims. The person
+    // who sent one can follow its status; editors see all of them.
+    match /storySubmissions/{id} {
+      allow read: if (signedIn() && resource.data.submitterUid == request.auth.uid)
+        || isAdmin();
+      allow write: if false;
+    }
+    match /startupSubmissions/{id} {
+      allow read: if (signedIn() && resource.data.submitterUid == request.auth.uid)
+        || isAdmin();
+      allow write: if false;
+    }
+    match /startupClaims/{id} {
+      allow read: if (signedIn() && resource.data.submitterUid == request.auth.uid)
+        || isAdmin();
+      allow write: if false;
+    }
+
+    // Moderation data: reports, rate limits, audit log, alert state.
+    match /reports/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /moderationLog/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /rateLimits/{id} {
+      allow read, write: if false;
+    }
+    match /system/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}
