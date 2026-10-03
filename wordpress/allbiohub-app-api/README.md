@@ -68,6 +68,11 @@ Field names are matched loosely (`industry`, `startup_industry`,
 `_ab_industry` all count as industry). The settings screen lists any field
 it couldn't find; those are simply hidden in the app.
 
+A startup is featured when its own `featured` / `is_featured` field says so,
+or when Directorist's `wp_directorist_orders` table has a completed, unexpired
+order with `is_featured_listing = 1` for its post id (a paid featured
+placement). Both are read-only checks.
+
 ### For developers: overriding
 
 ```php

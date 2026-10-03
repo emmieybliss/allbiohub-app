@@ -104,10 +104,14 @@ final class AllBioHub_App_API {
 
 		$startups = array();
 		$seen     = array();
+		$paid     = $source instanceof AllBioHub_App_API_Post_Type_Source ? self::paid_featured_ids() : array();
 		foreach ( $records as $record ) {
 			$startup = AllBioHub_App_API_Mapper::to_startup( $record, $map, array( $source, 'image_url' ) );
 			if ( ! $startup || isset( $seen[ $startup['slug'] ] ) ) {
 				continue;
+			}
+			if ( isset( $paid[ (int) $startup['id'] ] ) ) {
+				$startup['featured'] = true;
 			}
 			$seen[ $startup['slug'] ] = true;
 			$startups[]               = apply_filters( 'allbiohub_app_api_startup', $startup, $record );
@@ -117,6 +121,29 @@ final class AllBioHub_App_API {
 			'map'      => $map,
 			'records'  => count( $records ),
 		);
+	}
+
+	/**
+	 * Listing ids with a paid, unexpired featured placement in Directorist's
+	 * orders table, when the site has one. Read-only.
+	 *
+	 * @return array<int, true>
+	 */
+	public static function paid_featured_ids() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'directorist_orders';
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) !== $table ) {
+			return array();
+		}
+		$columns = array_map( 'strtolower', (array) $wpdb->get_col( "SHOW COLUMNS FROM `{$table}`" ) );
+		if ( array_diff( array( 'listing_id', 'is_featured_listing', 'status' ), $columns ) ) {
+			return array();
+		}
+		$expiry = in_array( 'expires_at', $columns, true ) ? ' AND ( expires_at IS NULL OR expires_at > UTC_TIMESTAMP() )' : '';
+		$ids    = $wpdb->get_col(
+			"SELECT DISTINCT listing_id FROM `{$table}` WHERE is_featured_listing = 1 AND LOWER( status ) IN ( 'completed', 'complete', 'paid', 'active', 'approved' ){$expiry}"
+		);
+		return array_fill_keys( array_map( 'intval', (array) $ids ), true );
 	}
 
 	public static function flush() {
