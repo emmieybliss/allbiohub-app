@@ -1,6 +1,6 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { db, FieldValue, logger, REGION, str } from "./core.js";
-import { fetchJson, siteUrl, startupApiPath } from "./follows.js";
+import { fetchJson, siteBase, startupApiPath } from "./follows.js";
 import { notify, type NotificationInput } from "./notifications.js";
 import { mentions } from "./validation.js";
 
@@ -53,7 +53,7 @@ async function fanOut(key: string, input: NotificationInput): Promise<number> {
  * stories trigger alerts, and each person hears about a story once.
  */
 export const checkNewStories = onSchedule({ region: REGION, schedule: "every 30 minutes", timeoutSeconds: 300 }, async () => {
-  const base = siteUrl.value().replace(/\/$/, "");
+  const base = siteBase();
   const stateRef = db.doc("system/alerts");
   const state = await stateRef.get();
   const lastDate = str(state.get("lastPostDate"));
@@ -118,7 +118,7 @@ export const checkNewStories = onSchedule({ region: REGION, schedule: "every 30 
  * when its profile changed (at most once a week per startup).
  */
 export const checkStartupChanges = onSchedule({ region: REGION, schedule: "every day 07:00", timeoutSeconds: 540 }, async () => {
-  const base = `${siteUrl.value().replace(/\/$/, "")}${startupApiPath.value()}`;
+  const base = `${siteBase()}${startupApiPath.value()}`;
   const followed = await db.collection("followTargets")
     .where("kind", "==", "startup").where("followerCount", ">", 0).limit(300).get();
   for (const target of followed.docs) {
@@ -140,7 +140,7 @@ export const checkStartupChanges = onSchedule({ region: REGION, schedule: "every
     const update: Record<string, unknown> = { snapshot, label: startup.name };
     if (before) {
       const name = startup.name;
-      const url = startup.link ?? `${siteUrl.value()}/startups/${slug}/`;
+      const url = startup.link ?? `${siteBase()}/startups/${slug}/`;
       if (snapshot.verified && !before.verified) {
         await fanOut(target.id, {
           type: "startup_story", pref: "startupAlerts", title: `${name} is now AllBioHub Verified`,

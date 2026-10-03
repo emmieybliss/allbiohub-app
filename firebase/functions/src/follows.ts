@@ -7,6 +7,12 @@ export const siteUrl = defineString("WORDPRESS_BASE_URL", { default: "https://al
 /** Base path of the startup directory add-on on that site. */
 export const startupApiPath = defineString("STARTUP_API_PATH", { default: "/wp-json/allbiohub/v1" });
 
+/** The site's base URL. The emulator tests point it at a fake site. */
+export function siteBase(): string {
+  const test = process.env.FUNCTIONS_EMULATOR === "true" ? process.env.EMULATOR_SITE_URL : undefined;
+  return (test || siteUrl.value()).replace(/\/$/, "");
+}
+
 const MAX_FOLLOWS = 500;
 const MAX_SAVED = 1000;
 
@@ -31,7 +37,7 @@ export async function fetchJson(url: string): Promise<unknown | null> {
  * follow can't attach a made-up name (names drive startup and topic alerts).
  */
 async function resolveTarget(kind: FollowKind, id: string, label: string): Promise<{ label: string; image: string | null }> {
-  const base = siteUrl.value().replace(/\/$/, "");
+  const base = siteBase();
   try {
     if (kind === "startup") {
       const json = await fetchJson(`${base}${startupApiPath.value()}/startups/${encodeURIComponent(id)}`) as

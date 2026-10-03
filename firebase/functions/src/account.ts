@@ -137,7 +137,10 @@ export const claimAdmin = callable<Record<string, never>, { admin: boolean }>(
   { allowRestricted: true },
   async (_data, caller) => {
     const user = await getAuth().getUser(caller.uid);
-    const allowed = adminEmails.value().split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const list = process.env.FUNCTIONS_EMULATOR === "true" && process.env.EMULATOR_ADMIN_EMAILS
+      ? process.env.EMULATOR_ADMIN_EMAILS
+      : adminEmails.value();
+    const allowed = list.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
     const email = (user.email ?? "").toLowerCase();
     if (!user.emailVerified || !email || !allowed.includes(email)) {
       throw new HttpsError("permission-denied", "This account isn't on the admin list.");

@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json",
     "lint": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "test": "tsx --test test/unit/*.test.ts",
-    "test:emulator": "firebase emulators:exec --only auth,firestore,functions,storage --project demo-allbiohub \"tsx --test --test-concurrency=1 test/emulator/*.test.ts\""
+    "test:emulator": "EMULATOR_SITE_URL=http://127.0.0.1:5999 EMULATOR_ADMIN_EMAILS=editor@allbiohub.test firebase emulators:exec --only auth,firestore,functions,storage --project demo-allbiohub \"tsx --test --test-concurrency=1 test/emulator/*.test.ts\""
   },
   "dependencies": {
     "firebase-admin": "^13.5.0",
