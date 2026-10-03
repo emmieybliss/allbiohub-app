@@ -2,12 +2,22 @@ name: Release
 
 # Builds the signed APK and Play Store bundle. Run it from GitHub:
 # Actions → Release → Run workflow. Needs the secrets listed in RELEASE.md.
+# With "Publish the APK" ticked (the default), the APK is also attached to a
+# public GitHub Release, so this link always serves the newest version:
+# https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub.apk
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the APK as a public download
+        type: boolean
+        default: true
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -92,6 +102,26 @@ jobs:
           name: allbiohub-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
+
+      - name: Publish the APK
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          tag="v${version%%+*}"
+          cp build/app/outputs/flutter-apk/app-release.apk "$RUNNER_TEMP/allbiohub.apk"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$RUNNER_TEMP/allbiohub.apk" --clobber
+          else
+            gh release create "$tag" "$RUNNER_TEMP/allbiohub.apk" \
+              --target "$GITHUB_SHA" --title "AllBioHub $tag" --latest \
+              --notes "AllBioHub for Android, version $version. Download allbiohub.apk below and open it on your phone to install."
+          fi
+          {
+            echo
+            echo "Download: https://github.com/$GITHUB_REPOSITORY/releases/latest/download/allbiohub.apk"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove the key from the runner
         if: always()

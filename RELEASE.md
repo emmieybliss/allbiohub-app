@@ -87,6 +87,15 @@ finishes (about 15 minutes), open the run and download:
 - `allbiohub-release-apk`: the APK for the download page,
 - `allbiohub-release-aab`: the bundle for Google Play.
 
+It also attaches the APK to a public GitHub Release named after the version
+(untick "Publish the APK" to skip that). Link the website's download button
+to this address; it always serves the newest published APK:
+
+    https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub.apk
+
+Raise `version:` in `pubspec.yaml` for each new release so phones install it
+as an update.
+
 The run stops with a clear message if the key secrets are missing, and
 refuses to finish if the app came out signed with the debug key. Its summary
 shows the release key's SHA-1 and SHA-256 fingerprints.
