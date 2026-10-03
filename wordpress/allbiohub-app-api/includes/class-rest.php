@@ -30,6 +30,11 @@ final class AllBioHub_App_API_Rest {
 		);
 		register_rest_route(
 			self::NAMESPACE_V1,
+			'/status',
+			$readable + array( 'callback' => array( __CLASS__, 'status' ) )
+		);
+		register_rest_route(
+			self::NAMESPACE_V1,
 			'/startups/(?P<slug>[a-z0-9][a-z0-9_-]*)',
 			$readable + array( 'callback' => array( __CLASS__, 'single' ) )
 		);
@@ -53,6 +58,32 @@ final class AllBioHub_App_API_Rest {
 		$response->header( 'X-WP-Total', (string) $result['total'] );
 		$response->header( 'X-WP-TotalPages', (string) $result['total_pages'] );
 		return self::cacheable( $response );
+	}
+
+	/**
+	 * What the API sees, for troubleshooting from outside wp-admin: the
+	 * source in use and how many startups it maps. Counts only, no records.
+	 */
+	public static function status() {
+		$source  = AllBioHub_App_API::enabled() ? AllBioHub_App_API_Sources::detect() : null;
+		$built   = $source ? AllBioHub_App_API::build( $source ) : null;
+		$flagged = function ( $flag ) use ( $built ) {
+			return $built ? count( array_filter( wp_list_pluck( $built['startups'], $flag ) ) ) : 0;
+		};
+		$response = rest_ensure_response(
+			array(
+				'version'  => ALLBIOHUB_APP_API_VERSION,
+				'enabled'  => AllBioHub_App_API::enabled(),
+				'source'   => $source ? $source->describe() : null,
+				'records'  => $built ? $built['records'] : 0,
+				'startups' => $built ? count( $built['startups'] ) : 0,
+				'featured' => $flagged( 'featured' ),
+				'verified' => $flagged( 'verified' ),
+				'fields'   => $built ? array_keys( array_filter( $built['map'] ) ) : array(),
+			)
+		);
+		$response->header( 'Cache-Control', 'no-store' );
+		return $response;
 	}
 
 	public static function single( WP_REST_Request $request ) {
@@ -116,7 +147,7 @@ final class AllBioHub_App_API_Rest {
 			'featured'       => $flag,
 			'orderby'        => array(
 				'type'    => 'string',
-				'enum'    => array( 'newest', 'updated', 'verified', 'name' ),
+				'enum'    => array( 'newest', 'updated', 'founded', 'oldest', 'name', 'featured', 'verified' ),
 				'default' => 'newest',
 			),
 		);

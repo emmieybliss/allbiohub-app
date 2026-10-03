@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:allbiohub/core/models/article.dart';
+import 'package:allbiohub/core/models/startup.dart';
 import 'package:allbiohub/core/networking/wordpress_mapper.dart';
 import 'package:allbiohub/core/providers.dart';
 import 'package:allbiohub/features/articles/article_screen.dart';
@@ -122,8 +126,92 @@ void main() {
     await pumpScreen(tester, const StartupsHomeScreen(), env: TestEnv());
     await tester.pumpAndSettle();
     expect(find.text('The startup directory is on its way'), findsOneWidget);
-    expect(find.text('List your startup'), findsOneWidget);
-    expect(find.text('Claim your startup'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Get Verified →'), 200);
+    expect(find.text('List Your Startup'), findsOneWidget);
+    expect(find.text('Claim Your Startup'), findsOneWidget);
+  });
+
+  group('Startups tab follows the website layout', () {
+    final sample = jsonDecode(
+      File('test/fixtures/startup_api_sample.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+
+    TestEnv startupEnv(List<dynamic> list, {String total = '208'}) => TestEnv({
+      '/wp-json/allbiohub/v1/startups': FakeResponse(
+        list,
+        headers: {'x-wp-total': total, 'x-wp-totalpages': '21'},
+      ),
+      '/wp-json/allbiohub/v1/startups/filters': FakeResponse(sample['filters']),
+    });
+
+    testWidgets('hero, stats, featured, browse, list and call to action', (
+      tester,
+    ) async {
+      final env = startupEnv(sample['list'] as List<dynamic>);
+      await pumpScreen(tester, const StartupsHomeScreen(), env: env);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discover African Startups'), findsOneWidget);
+      expect(find.text('Claim Your Profile'), findsOneWidget);
+      expect(find.text('208'), findsWidgets);
+      expect(find.text('Featured startups'), findsOneWidget);
+
+      final scrollable = find.byType(Scrollable).first;
+      for (final text in [
+        'Browse by industry',
+        'All startups',
+        'See all 208 startups',
+        'Browse by country',
+        'Building something in Africa?',
+        'Get Verified →',
+      ]) {
+        await tester.scrollUntilVisible(
+          find.text(text),
+          200,
+          scrollable: scrollable,
+        );
+        expect(find.text(text), findsOneWidget, reason: text);
+      }
+    });
+
+    testWidgets('sorting uses the website options', (tester) async {
+      final env = startupEnv(sample['list'] as List<dynamic>);
+      await pumpScreen(tester, const StartupsHomeScreen(), env: env);
+      await tester.pumpAndSettle();
+      final sort = find.byType(DropdownButtonFormField<StartupSort>);
+      await tester.scrollUntilVisible(
+        sort,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(sort);
+      await tester.pumpAndSettle();
+      for (final label in ['Founded recently', 'Oldest', 'Alphabetical']) {
+        expect(find.text(label), findsWidgets);
+      }
+      await tester.tap(find.text('Featured first').last);
+      await tester.pumpAndSettle();
+      expect(
+        env.adapter.requests.map((r) => r.uri.queryParameters['orderby']),
+        contains('featured'),
+      );
+    });
+
+    testWidgets('an empty directory says so instead of looking broken', (
+      tester,
+    ) async {
+      final env = startupEnv(const [], total: '0');
+      await pumpScreen(tester, const StartupsHomeScreen(), env: env);
+      await tester.pumpAndSettle();
+      expect(find.text('Featured startups'), findsNothing);
+      await tester.scrollUntilVisible(
+        find.text('No startups to show yet'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Browse startups on allbiohub.com'), findsOneWidget);
+    });
   });
 
   testWidgets('screens render in dark mode', (tester) async {

@@ -9,3 +9,4 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 delete_option( 'allbiohub_app_api_enabled' );
 delete_transient( 'allbiohub_app_api_startups' );
+delete_transient( 'allbiohub_app_api_startups_v2' );

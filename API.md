@@ -100,7 +100,7 @@ Query parameters (all optional; unknown filters ignored):
 | `industry`, `country`, `city`, `stage`, `funding`, `business_model`, `employees` | string | Exact filter values from `/startups/filters` |
 | `founded_from`, `founded_to` | int | Founded year range |
 | `verified`, `claimed`, `featured` | 0/1 | Status flags |
-| `orderby` | `newest` \| `updated` \| `verified` \| `name` | Sort |
+| `orderby` | `newest` \| `updated` \| `founded` \| `oldest` \| `name` \| `featured` \| `verified` | Sort (the website's sort options: recently added, recently updated, founded recently, oldest, alphabetical, featured first, verified first) |
 
 Response: JSON array of startup objects, with `X-WP-Total` and
 `X-WP-TotalPages` headers.

@@ -167,10 +167,22 @@ final class AllBioHub_App_API_Directory {
 				return $by_name;
 			case 'updated':
 				return $by_date( 'updated_at' );
-			case 'verified':
+			case 'oldest':
+				$newest = $by_date( 'created_at' );
+				return function ( $a, $b ) use ( $newest, $by_name ) {
+					return $newest( $b, $a ) ?: $by_name( $a, $b );
+				};
+			case 'founded':
+				// Founded recently; startups without a year go last.
 				$newest = $by_date( 'created_at' );
 				return function ( $a, $b ) use ( $newest ) {
-					return ( (int) $b['verified'] <=> (int) $a['verified'] ) ?: $newest( $a, $b );
+					return ( (int) $b['founded'] <=> (int) $a['founded'] ) ?: $newest( $a, $b );
+				};
+			case 'featured':
+			case 'verified':
+				$newest = $by_date( 'created_at' );
+				return function ( $a, $b ) use ( $orderby, $newest ) {
+					return ( (int) $b[ $orderby ] <=> (int) $a[ $orderby ] ) ?: $newest( $a, $b );
 				};
 			default:
 				return $by_date( 'created_at' );

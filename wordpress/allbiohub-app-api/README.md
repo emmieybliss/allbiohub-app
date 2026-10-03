@@ -1,12 +1,13 @@
 # AllBioHub App API (WordPress plugin)
 
 Shares the allbiohub.com startup directory with the AllBioHub app through
-three read-only routes:
+four read-only routes:
 
 ```
 GET /wp-json/allbiohub/v1/startups           list, search, filters, sorting
 GET /wp-json/allbiohub/v1/startups/filters   industries, countries, stages, …
 GET /wp-json/allbiohub/v1/startups/{slug}    one startup
+GET /wp-json/allbiohub/v1/status             source in use and counts, for troubleshooting
 ```
 
 The contract is in [API.md](../../API.md).
@@ -66,6 +67,11 @@ It looks for, in order:
 Field names are matched loosely (`industry`, `startup_industry`,
 `_ab_industry` all count as industry). The settings screen lists any field
 it couldn't find; those are simply hidden in the app.
+
+A startup is featured when its own `featured` / `is_featured` field says so,
+or when Directorist's `wp_directorist_orders` table has a completed, unexpired
+order with `is_featured_listing = 1` for its post id (a paid featured
+placement). Both are read-only checks.
 
 ### For developers: overriding
 

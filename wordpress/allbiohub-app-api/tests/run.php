@@ -173,6 +173,9 @@ $slugs = function ( $result ) {
 check( 'newest first by default', array( 'flutterwave', 'andela', 'paystack', 'zeta' ), $slugs( $directory->query( array() ) ) );
 check( 'by name', array( 'andela', 'flutterwave', 'paystack', 'zeta' ), $slugs( $directory->query( array( 'orderby' => 'name' ) ) ) );
 check( 'verified first', 'paystack', $slugs( $directory->query( array( 'orderby' => 'verified' ) ) )[0] );
+check( 'featured first', array( 'andela', 'flutterwave', 'paystack', 'zeta' ), $slugs( $directory->query( array( 'orderby' => 'featured' ) ) ) );
+check( 'oldest first', array( 'zeta', 'paystack', 'andela', 'flutterwave' ), $slugs( $directory->query( array( 'orderby' => 'oldest' ) ) ) );
+check( 'founded recently, unknown years last', array( 'flutterwave', 'paystack', 'andela', 'zeta' ), $slugs( $directory->query( array( 'orderby' => 'founded' ) ) ) );
 check( 'industry filter is case-insensitive and multi-valued', array( 'flutterwave', 'paystack' ), $slugs( $directory->query( array( 'industry' => 'fintech' ) ) ) );
 check( 'filters combine', array( 'andela' ), $slugs( $directory->query( array( 'country' => 'Kenya', 'industry' => 'Talent' ) ) ) );
 check( 'search all words', array( 'paystack' ), $slugs( $directory->query( array( 'search' => 'paystack tagline' ) ) ) );
