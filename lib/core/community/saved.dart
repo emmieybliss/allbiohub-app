@@ -25,7 +25,9 @@ class SavedEntitiesNotifier extends Notifier<List<SavedEntity>> {
       final raw = store.get(key);
       if (raw == null) continue;
       try {
-        items.add(SavedEntity.fromJson(jsonDecode(raw) as Map<String, dynamic>));
+        items.add(
+          SavedEntity.fromJson(jsonDecode(raw) as Map<String, dynamic>),
+        );
       } on Object {
         // Skip a damaged entry.
       }
@@ -67,14 +69,16 @@ class SavedEntitiesNotifier extends Notifier<List<SavedEntity>> {
       );
     }
     unawaited(
-      ref.read(savedSyncProvider).mirror(
-        kind: entity.kind.name,
-        id: entity.id,
-        title: entity.title,
-        image: entity.image,
-        url: entity.url,
-        saved: !saved,
-      ),
+      ref
+          .read(savedSyncProvider)
+          .mirror(
+            kind: entity.kind.name,
+            id: entity.id,
+            title: entity.title,
+            image: entity.image,
+            url: entity.url,
+            saved: !saved,
+          ),
     );
     return !saved;
   }

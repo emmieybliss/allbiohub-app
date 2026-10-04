@@ -48,7 +48,9 @@ class AccountSettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.mail_outline_rounded),
             title: Text(user.email ?? 'No email'),
             subtitle: Text(
-              user.emailVerified ? 'Verified · only you can see this' : 'Not verified yet',
+              user.emailVerified
+                  ? 'Verified · only you can see this'
+                  : 'Not verified yet',
             ),
             trailing: user.emailVerified
                 ? null
@@ -76,13 +78,17 @@ class AccountSettingsScreen extends ConsumerWidget {
               onChanged: (on) => _privacy(
                 context,
                 ref,
-                visibility: on ? ProfileVisibility.public : ProfileVisibility.private,
+                visibility: on
+                    ? ProfileVisibility.public
+                    : ProfileVisibility.private,
               ),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.history_rounded),
               title: const Text('Show my activity'),
-              subtitle: const Text('Comment count and followed topics on your profile'),
+              subtitle: const Text(
+                'Comment count and followed topics on your profile',
+              ),
               value: profile.showActivity,
               onChanged: (on) => _privacy(context, ref, showActivity: on),
             ),
@@ -102,8 +108,14 @@ class AccountSettingsScreen extends ConsumerWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.delete_outline_rounded, color: context.colors.error),
-            title: Text('Delete account', style: TextStyle(color: context.colors.error)),
+            leading: Icon(
+              Icons.delete_outline_rounded,
+              color: context.colors.error,
+            ),
+            title: Text(
+              'Delete account',
+              style: TextStyle(color: context.colors.error),
+            ),
             onTap: () => showModalBottomSheet<void>(
               context: context,
               isScrollControlled: true,
@@ -125,7 +137,9 @@ class AccountSettingsScreen extends ConsumerWidget {
                     try {
                       await ref.read(communityApiProvider).claimAdmin();
                       await ref.read(authRepositoryProvider).reload();
-                      if (context.mounted) showMessage(context, 'Editor access is on.');
+                      if (context.mounted) {
+                        showMessage(context, 'Editor access is on.');
+                      }
                     } on Object catch (e) {
                       if (context.mounted) showCommunityError(context, e);
                     }
@@ -155,7 +169,8 @@ class _DeleteAccountSheet extends ConsumerStatefulWidget {
   const _DeleteAccountSheet();
 
   @override
-  ConsumerState<_DeleteAccountSheet> createState() => _DeleteAccountSheetState();
+  ConsumerState<_DeleteAccountSheet> createState() =>
+      _DeleteAccountSheetState();
 }
 
 class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
@@ -176,7 +191,8 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
       _error = null;
     });
     final auth = ref.read(authRepositoryProvider);
-    final usesPassword = ref.read(authUserProvider).value?.usesPassword ?? false;
+    final usesPassword =
+        ref.read(authUserProvider).value?.usesPassword ?? false;
     try {
       await auth.reauthenticate(password: usesPassword ? _password.text : null);
       await ref.read(deviceRegistrationProvider).beforeSignOut();
@@ -199,7 +215,8 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final usesPassword = ref.watch(authUserProvider).value?.usesPassword ?? false;
+    final usesPassword =
+        ref.watch(authUserProvider).value?.usesPassword ?? false;
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -247,7 +264,9 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     _error!,
-                    style: context.text.bodyMedium?.copyWith(color: context.colors.error),
+                    style: context.text.bodyMedium?.copyWith(
+                      color: context.colors.error,
+                    ),
                   ),
                 ),
               Row(
@@ -270,7 +289,9 @@ class _DeleteAccountSheetState extends ConsumerState<_DeleteAccountSheet> {
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2.2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                              ),
                             )
                           : const Text('Delete'),
                     ),

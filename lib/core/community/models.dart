@@ -84,11 +84,31 @@ class UserProfile {
 /// Story topics (Breaking, Technology, …) stay device topics in
 /// [NotificationTopic].
 enum CommunityNotificationPref {
-  commentActivity('commentActivity', 'Comment activity', 'Replies to and likes on your comments'),
-  topicAlerts('topicAlerts', 'Followed topics', 'New stories in topics you follow'),
-  startupAlerts('startupAlerts', 'Startup alerts', 'News and updates about startups you follow'),
-  founderAlerts('founderAlerts', 'Founder alerts', 'New stories about founders you follow'),
-  submissionUpdates('submissionUpdates', 'Your submissions', 'Status of stories and startups you send'),
+  commentActivity(
+    'commentActivity',
+    'Comment activity',
+    'Replies to and likes on your comments',
+  ),
+  topicAlerts(
+    'topicAlerts',
+    'Followed topics',
+    'New stories in topics you follow',
+  ),
+  startupAlerts(
+    'startupAlerts',
+    'Startup alerts',
+    'News and updates about startups you follow',
+  ),
+  founderAlerts(
+    'founderAlerts',
+    'Founder alerts',
+    'New stories about founders you follow',
+  ),
+  submissionUpdates(
+    'submissionUpdates',
+    'Your submissions',
+    'Status of stories and startups you send',
+  ),
   community('community', 'Community', 'Community news from AllBioHub'),
   marketing('marketing', 'Promotions', 'Occasional offers and announcements');
 

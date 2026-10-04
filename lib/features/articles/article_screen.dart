@@ -17,6 +17,7 @@ import '../../shared/widgets/article_cards.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/state_views.dart';
+import '../community/article_community.dart';
 import 'article_html.dart';
 import 'article_providers.dart';
 
@@ -122,6 +123,7 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
           ),
           if (full != null) ...[
             SliverToBoxAdapter(child: _Footer(article: full)),
+            SliverToBoxAdapter(child: ArticleCommunitySection(article: full)),
             _Related(article: full),
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 48)),

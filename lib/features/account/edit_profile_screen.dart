@@ -51,7 +51,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (mounted) showMessage(context, 'Choose an image under 5 MB.');
       return;
     }
-    final type = file.mimeType ??
+    final type =
+        file.mimeType ??
         (file.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg');
     setState(() => _photoBusy = true);
     try {
@@ -96,7 +97,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       appBar: AppBar(
         title: const Text('Edit profile'),
         actions: [
-          TextButton(onPressed: _busy ? null : _save, child: const Text('Save')),
+          TextButton(
+            onPressed: _busy ? null : _save,
+            child: const Text('Save'),
+          ),
         ],
       ),
       body: Form(
@@ -138,7 +142,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               maxLength: 50,
               textCapitalization: TextCapitalization.words,
               decoration: const InputDecoration(labelText: 'Display name'),
-              validator: (v) => (v ?? '').trim().isEmpty ? 'Enter your name' : null,
+              validator: (v) =>
+                  (v ?? '').trim().isEmpty ? 'Enter your name' : null,
             ),
             const SizedBox(height: 8),
             TextFormField(

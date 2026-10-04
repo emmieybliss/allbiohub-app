@@ -31,7 +31,10 @@ class NotificationCenterScreen extends ConsumerWidget {
   void _open(BuildContext context, WidgetRef ref, AppNotification n) {
     final uid = ref.read(currentUidProvider);
     if (!n.read && uid != null) {
-      ref.read(communityApiProvider).markRead(uid, n.id).catchError((Object _) {});
+      ref
+          .read(communityApiProvider)
+          .markRead(uid, n.id)
+          .catchError((Object _) {});
       ref
           .read(notificationsListProvider.notifier)
           .updateWhere(
@@ -100,7 +103,9 @@ class NotificationCenterScreen extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 ),
                 _ when state.error != null => ListView(
-                  children: [ErrorView(error: state.error!, onRetry: notifier.retry)],
+                  children: [
+                    ErrorView(error: state.error!, onRetry: notifier.retry),
+                  ],
                 ),
                 _ when state.isEmpty => ListView(
                   children: const [
@@ -117,7 +122,9 @@ class NotificationCenterScreen extends ConsumerWidget {
                   itemCount: state.items.length + 1,
                   itemBuilder: (context, i) {
                     if (i == state.items.length) {
-                      if (state.hasMore && !state.loading && state.loadMoreError == null) {
+                      if (state.hasMore &&
+                          !state.loading &&
+                          state.loadMoreError == null) {
                         WidgetsBinding.instance.addPostFrameCallback(
                           (_) => notifier.loadMore(),
                         );
@@ -142,14 +149,21 @@ class NotificationCenterScreen extends ConsumerWidget {
                             : const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       subtitle: Text(
-                        [if (n.body.isNotEmpty) n.body, relativeDate(n.createdAt)].join('\n'),
+                        [
+                          if (n.body.isNotEmpty) n.body,
+                          relativeDate(n.createdAt),
+                        ].join('\n'),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                       isThreeLine: n.body.isNotEmpty,
                       trailing: n.read
                           ? null
-                          : Icon(Icons.circle, size: 10, color: context.brand.accent),
+                          : Icon(
+                              Icons.circle,
+                              size: 10,
+                              color: context.brand.accent,
+                            ),
                       onTap: () => _open(context, ref, n),
                     );
                   },

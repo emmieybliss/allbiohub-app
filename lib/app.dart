@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/community/community_providers.dart';
+import 'core/community/saved.dart';
 import 'core/providers.dart';
 import 'core/routing/app_router.dart';
 import 'core/routing/routes.dart';
@@ -23,6 +25,11 @@ class _AllBioHubAppState extends ConsumerState<AllBioHubApp> {
   @override
   void initState() {
     super.initState();
+    // Account housekeeping: register this phone for personal notifications
+    // and sync saved items while someone is signed in. Both do nothing
+    // while accounts are unavailable.
+    ref.read(deviceRegistrationProvider);
+    ref.read(savedSyncProvider);
     final notifications = ref.read(notificationServiceProvider);
     if (notifications.isAvailable) {
       _taps = notifications.opened.listen(_openNotification);

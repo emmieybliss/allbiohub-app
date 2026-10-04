@@ -59,11 +59,14 @@ class PollCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  (label ?? (p.kind == PollKind.questionOfTheDay
-                          ? 'Question of the Day'
-                          : 'Poll'))
+                  (label ??
+                          (p.kind == PollKind.questionOfTheDay
+                              ? 'Question of the Day'
+                              : 'Poll'))
                       .toUpperCase(),
-                  style: context.text.labelSmall?.copyWith(color: brand.accentText),
+                  style: context.text.labelSmall?.copyWith(
+                    color: brand.accentText,
+                  ),
                 ),
               ),
               IconButton(
@@ -85,7 +88,9 @@ class PollCard extends ConsumerWidget {
                 selected: state.myVote == option.id,
                 showResults: state.showResults,
                 percent: percentages[option.id] ?? 0,
-                onTap: state.canVote && !state.busy ? () => vote(option.id) : null,
+                onTap: state.canVote && !state.busy
+                    ? () => vote(option.id)
+                    : null,
               ),
             ),
           const SizedBox(height: 4),
@@ -94,7 +99,8 @@ class PollCard extends ConsumerWidget {
               if (state.showResults || p.totalVotes > 0)
                 '${p.totalVotes} ${p.totalVotes == 1 ? 'vote' : 'votes'}',
               if (!p.isOpen) 'Closed',
-              if (p.isOpen && state.hasVoted && p.allowChange) 'You can change your vote',
+              if (p.isOpen && state.hasVoted && p.allowChange)
+                'You can change your vote',
               if (p.isOpen && p.expiresAt != null)
                 'Closes ${MaterialLocalizations.of(context).formatMediumDate(p.expiresAt!)}',
             ].join(' · '),
@@ -107,7 +113,9 @@ class PollCard extends ConsumerWidget {
 
   void _share(WidgetRef ref, Poll p) {
     final site = ref.read(appConfigProvider).siteUrl;
-    ref.read(analyticsProvider).log(AnalyticsEvent.pollShare, {'poll_id': p.id});
+    ref.read(analyticsProvider).log(AnalyticsEvent.pollShare, {
+      'poll_id': p.id,
+    });
     SharePlus.instance.share(
       ShareParams(
         text: '${p.question}\n\nVote in the AllBioHub app:\n$site',
@@ -158,16 +166,25 @@ class _OptionRow extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     widthFactor: percent / 100,
                     child: ColoredBox(
-                      color: selected ? brand.accentSoft : brand.border.withValues(alpha: 0.5),
+                      color: selected
+                          ? brand.accentSoft
+                          : brand.border.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     if (selected) ...[
-                      Icon(Icons.check_circle_rounded, size: 18, color: brand.accentText),
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 18,
+                        color: brand.accentText,
+                      ),
                       const SizedBox(width: 8),
                     ],
                     Expanded(child: Text(label, style: context.text.bodyLarge)),
@@ -205,7 +222,10 @@ class PollsScreen extends ConsumerWidget {
         child: switch (active) {
           AsyncError(:final error) when !active.isLoading => ListView(
             children: [
-              ErrorView(error: error, onRetry: () => ref.invalidate(activePollsProvider)),
+              ErrorView(
+                error: error,
+                onRetry: () => ref.invalidate(activePollsProvider),
+              ),
             ],
           ),
           AsyncData(:final value) => ListView(
@@ -215,7 +235,10 @@ class PollsScreen extends ConsumerWidget {
                 PollCard(poll: qotd),
                 const SizedBox(height: 16),
               ],
-              for (final p in value) ...[PollCard(poll: p), const SizedBox(height: 16)],
+              for (final p in value) ...[
+                PollCard(poll: p),
+                const SizedBox(height: 16),
+              ],
               if (value.isEmpty && qotd == null)
                 const MessageView(
                   icon: Icons.poll_outlined,
@@ -227,7 +250,10 @@ class PollsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
                   child: Text('Past polls', style: context.text.titleLarge),
                 ),
-                for (final p in past) ...[PollCard(poll: p), const SizedBox(height: 16)],
+                for (final p in past) ...[
+                  PollCard(poll: p),
+                  const SizedBox(height: 16),
+                ],
               ],
             ],
           ),

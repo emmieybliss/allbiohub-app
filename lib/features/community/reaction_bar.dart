@@ -80,7 +80,10 @@ class ReactionBar extends ConsumerWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(type.emoji, style: const TextStyle(fontSize: 16)),
+                              Text(
+                                type.emoji,
+                                style: const TextStyle(fontSize: 16),
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 count > 0 ? '$count' : type.label,

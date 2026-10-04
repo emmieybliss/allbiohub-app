@@ -78,7 +78,8 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
       setState(() => _checking = true);
       try {
         final r = await ref.read(communityApiProvider).checkUsername(value);
-        if (!mounted || normalizeUsername(_username.text) != normalizeUsername(value)) {
+        if (!mounted ||
+            normalizeUsername(_username.text) != normalizeUsername(value)) {
           return;
         }
         setState(() {
@@ -120,7 +121,8 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
   @override
   Widget build(BuildContext context) {
     final next = ref.watch(myAccountProvider).value?.nextUsernameChange;
-    final locked = widget.changing && next != null && next.isAfter(DateTime.now());
+    final locked =
+        widget.changing && next != null && next.isAfter(DateTime.now());
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.changing ? 'Change username' : 'Choose a username'),
@@ -135,7 +137,9 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
                 widget.changing
                     ? 'Your old username becomes available to others.'
                     : 'This is how you appear when you comment. You can change it later.',
-                style: context.text.bodyMedium?.copyWith(color: context.brand.muted),
+                style: context.text.bodyMedium?.copyWith(
+                  color: context.brand.muted,
+                ),
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -160,8 +164,12 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
                       : _availability == null
                       ? null
                       : Icon(
-                          _available ? Icons.check_circle_rounded : Icons.error_outline,
-                          color: _available ? context.brand.verified : context.colors.error,
+                          _available
+                              ? Icons.check_circle_rounded
+                              : Icons.error_outline,
+                          color: _available
+                              ? context.brand.verified
+                              : context.colors.error,
                         ),
                 ),
                 validator: (v) => usernameRule(v ?? ''),
@@ -173,7 +181,9 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
                   child: Text(
                     _availability!,
                     style: context.text.bodySmall?.copyWith(
-                      color: _available ? context.brand.verified : context.colors.error,
+                      color: _available
+                          ? context.brand.verified
+                          : context.colors.error,
                     ),
                   ),
                 ),
@@ -201,7 +211,9 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
                 const SizedBox(height: 12),
                 Text(
                   _error!,
-                  style: context.text.bodyMedium?.copyWith(color: context.colors.error),
+                  style: context.text.bodyMedium?.copyWith(
+                    color: context.colors.error,
+                  ),
                 ),
               ],
               const SizedBox(height: 24),

@@ -52,9 +52,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     } on Object {
       if (mounted) {
         setState(
-          () => _error = const CommunityException(
-            CommunityErrorKind.unknown,
-          ).message,
+          () =>
+              _error = const CommunityException(CommunityErrorKind.unknown)
+                  .message,
         );
       }
     } finally {
@@ -71,7 +71,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         await auth.registerWithEmail(_email.text, _password.text);
         analytics.log(AnalyticsEvent.signUp, {'method': 'email'});
         if (mounted) {
-          showMessage(context, 'Account created. Check your email to verify it.');
+          showMessage(
+            context,
+            'Account created. Check your email to verify it.',
+          );
         }
       } else {
         await auth.signInWithEmail(_email.text, _password.text);
@@ -97,7 +100,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     await _run(() async {
       await ref.read(authRepositoryProvider).sendPasswordReset(email);
       if (mounted) {
-        showMessage(context, 'If $email has an account, a reset link is on its way.');
+        showMessage(
+          context,
+          'If $email has an account, a reset link is on its way.',
+        );
       }
       return false;
     });
@@ -133,7 +139,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 widget.reason ??
                     'Follow startups and topics, join conversations and sync '
                         'what you save.',
-                style: context.text.bodyMedium?.copyWith(color: context.brand.muted),
+                style: context.text.bodyMedium?.copyWith(
+                  color: context.brand.muted,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -158,7 +166,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(labelText: 'Email'),
-                validator: (v) => (v ?? '').trim().contains(RegExp(r'^\S+@\S+\.\S+$'))
+                validator: (v) =>
+                    (v ?? '').trim().contains(RegExp(r'^\S+@\S+\.\S+$'))
                     ? null
                     : 'Enter a valid email address',
               ),
@@ -167,7 +176,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 controller: _password,
                 obscureText: !_showPassword,
                 autofillHints: [
-                  _register ? AutofillHints.newPassword : AutofillHints.password,
+                  _register
+                      ? AutofillHints.newPassword
+                      : AutofillHints.password,
                 ],
                 onFieldSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
@@ -180,12 +191,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                     ),
-                    onPressed: () => setState(() => _showPassword = !_showPassword),
+                    onPressed: () =>
+                        setState(() => _showPassword = !_showPassword),
                   ),
                 ),
                 validator: (v) {
                   if ((v ?? '').isEmpty) return 'Enter your password';
-                  if (_register && v!.length < 8) return 'Use at least 8 characters';
+                  if (_register && v!.length < 8) {
+                    return 'Use at least 8 characters';
+                  }
                   return null;
                 },
               ),
@@ -195,7 +209,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   liveRegion: true,
                   child: Text(
                     _error!,
-                    style: context.text.bodyMedium?.copyWith(color: context.colors.error),
+                    style: context.text.bodyMedium?.copyWith(
+                      color: context.colors.error,
+                    ),
                   ),
                 ),
               ],
@@ -241,7 +257,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 style: context.text.bodySmall,
                 textAlign: TextAlign.center,
               ),
-              if (config.termsUrl.isNotEmpty || config.privacyPolicyUrl.isNotEmpty)
+              if (config.termsUrl.isNotEmpty ||
+                  config.privacyPolicyUrl.isNotEmpty)
                 Wrap(
                   alignment: WrapAlignment.center,
                   children: [

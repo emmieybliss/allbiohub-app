@@ -53,9 +53,10 @@ class FeatureFlagsNotifier extends Notifier<FeatureFlags> {
   }
 }
 
-final featureFlagsProvider = NotifierProvider<FeatureFlagsNotifier, FeatureFlags>(
-  FeatureFlagsNotifier.new,
-);
+final featureFlagsProvider =
+    NotifierProvider<FeatureFlagsNotifier, FeatureFlags>(
+      FeatureFlagsNotifier.new,
+    );
 
 /// Whether a community feature is on.
 final featureProvider = Provider.family<bool, Feature>(
@@ -136,9 +137,7 @@ final followOverridesProvider =
     );
 
 final isFollowingProvider = Provider.family<bool, FollowTarget>((ref, target) {
-  final override = ref.watch(
-    followOverridesProvider.select((m) => m[target]),
-  );
+  final override = ref.watch(followOverridesProvider.select((m) => m[target]));
   if (override != null) return override;
   final follows = ref.watch(followsProvider).value ?? const [];
   return follows.any((f) => f.target == target);

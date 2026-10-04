@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/community/community_providers.dart';
+import '../../core/community/feature_flags.dart';
 import '../../core/models/article.dart';
 import '../../core/models/category.dart';
 import '../../core/routing/routes.dart';
@@ -10,6 +12,9 @@ import '../../shared/widgets/article_cards.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/state_views.dart';
+import '../community/community_lists.dart';
+import '../community/polls_providers.dart';
+import '../community/polls_screen.dart';
 import '../startups/startup_providers.dart';
 import '../startups/startup_widgets.dart';
 import 'home_providers.dart';
@@ -22,6 +27,9 @@ class HomeScreen extends ConsumerWidget {
     ref.invalidate(categoriesProvider);
     ref.invalidate(categoryPreviewProvider);
     ref.invalidate(startupRailProvider);
+    ref.invalidate(questionOfTheDayProvider);
+    ref.invalidate(activePollsProvider);
+    ref.invalidate(forYouProvider);
     await Future.wait([
       ref.read(homeFeedProvider.notifier).refresh(),
       ref.read(moreStoriesProvider.notifier).refresh(),
@@ -48,11 +56,7 @@ class HomeScreen extends ConsumerWidget {
                   icon: const Icon(Icons.search_rounded),
                   onPressed: () => context.push(Routes.search),
                 ),
-                IconButton(
-                  tooltip: 'Notifications',
-                  icon: const Icon(Icons.notifications_none_rounded),
-                  onPressed: () => context.push(Routes.notificationSettings),
-                ),
+                const _NotificationsButton(),
                 const SizedBox(width: 8),
               ],
             ),
@@ -101,6 +105,7 @@ class HomeScreen extends ConsumerWidget {
       SliverList.list(
         children: [for (final a in top) ArticleListTile(article: a)],
       ),
+      const SliverToBoxAdapter(child: _CommunitySection()),
       const _CategorySections(start: 0, count: 2),
       const SliverToBoxAdapter(child: _StartupsSection()),
       // Every other category, so small ones like Women in Tech still show.
@@ -208,6 +213,83 @@ class _CategorySections extends ConsumerWidget {
     final slice = (count == null ? rest : rest.take(count!)).toList();
     return SliverList.list(
       children: [for (final c in slice) _CategoryRail(category: c)],
+    );
+  }
+}
+
+/// The bell: the notification center when it is switched on (with the
+/// number of unread notifications), otherwise notification preferences.
+class _NotificationsButton extends ConsumerWidget {
+  const _NotificationsButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final center = ref.watch(featureProvider(Feature.notificationCenter));
+    final unread = center
+        ? ref.watch(unreadNotificationsProvider).value ?? 0
+        : 0;
+    return IconButton(
+      tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: const Icon(Icons.notifications_none_rounded),
+      ),
+      onPressed: () => context.push(
+        center ? Routes.notificationCenter : Routes.notificationSettings,
+      ),
+    );
+  }
+}
+
+/// Question of the Day, stories from followed topics, and open polls.
+/// Each is left out when switched off or empty.
+class _CommunitySection extends ConsumerWidget {
+  const _CommunitySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final qotd = ref.watch(questionOfTheDayProvider).value;
+    final forYou = ref.watch(forYouProvider).value;
+    final polls = ref.watch(activePollsProvider).value ?? const [];
+    if (qotd == null && forYou == null && polls.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (qotd != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+            child: PollCard(poll: qotd),
+          ),
+        if (forYou != null) ...[
+          const SectionHeader(title: 'For you'),
+          SizedBox(
+            height: ArticleRailCard.railHeight(context),
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: forYou.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 14),
+              itemBuilder: (_, i) => ArticleRailCard(article: forYou[i]),
+            ),
+          ),
+        ],
+        if (polls.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: OutlinedButton.icon(
+              onPressed: () => context.push(Routes.polls),
+              icon: const Icon(Icons.poll_outlined),
+              label: Text(
+                polls.length == 1
+                    ? '1 open poll'
+                    : '${polls.length} open polls',
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -8,6 +8,8 @@ import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/article_cards.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/state_views.dart';
+import '../community/community_lists.dart';
+import '../community/community_widgets.dart';
 import 'article_providers.dart';
 
 /// All stories in a category or tag ("View all").
@@ -85,6 +87,16 @@ class _TopicFeedState extends ConsumerState<_TopicFeed> {
             slivers: [
               SliverAppBar.medium(
                 title: Text(title, style: context.text.headlineSmall),
+                actions: [
+                  if (topic.kind == TermKind.category)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: FollowButton(
+                        target: topicTarget(topic),
+                        dense: true,
+                      ),
+                    ),
+                ],
               ),
               if (topic.description.isNotEmpty)
                 SliverToBoxAdapter(

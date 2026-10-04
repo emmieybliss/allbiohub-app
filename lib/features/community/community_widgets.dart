@@ -100,7 +100,9 @@ Future<bool> verifyEmailDialog(BuildContext context, WidgetRef ref) async {
           onPressed: () async {
             try {
               await auth.sendEmailVerification();
-              if (context.mounted) showMessage(context, 'Verification email sent.');
+              if (context.mounted) {
+                showMessage(context, 'Verification email sent.');
+              }
             } on Object catch (e) {
               if (context.mounted) showCommunityError(context, e);
             }
@@ -142,7 +144,9 @@ class UserAvatar extends StatelessWidget {
     final brand = context.brand;
     final initial = Center(
       child: Text(
-        (name?.trim().isNotEmpty ?? false) ? name!.trim()[0].toUpperCase() : '?',
+        (name?.trim().isNotEmpty ?? false)
+            ? name!.trim()[0].toUpperCase()
+            : '?',
         style: TextStyle(
           color: brand.accentText,
           fontWeight: FontWeight.w700,
@@ -154,7 +158,10 @@ class UserAvatar extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(color: brand.accentSoft, shape: BoxShape.circle),
+        decoration: BoxDecoration(
+          color: brand.accentSoft,
+          shape: BoxShape.circle,
+        ),
         clipBehavior: Clip.antiAlias,
         child: photoUrl == null || photoUrl!.isEmpty
             ? initial
@@ -162,7 +169,10 @@ class UserAvatar extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   initial,
-                  AppImage(image: MediaImage.single(photoUrl!), allowCropped: true),
+                  AppImage(
+                    image: MediaImage.single(photoUrl!),
+                    allowCropped: true,
+                  ),
                 ],
               ),
       ),
@@ -199,7 +209,9 @@ class FollowButton extends ConsumerWidget {
     final style = dense
         ? const ButtonStyle(
             visualDensity: VisualDensity.compact,
-            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+            padding: WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: 12),
+            ),
           )
         : null;
     Future<void> onPressed() async {
@@ -208,22 +220,27 @@ class FollowButton extends ConsumerWidget {
         context,
         ref,
         profile: false,
-        reason: 'Sign in to follow ${target.label.isEmpty ? 'this' : target.label} '
+        reason:
+            'Sign in to follow ${target.label.isEmpty ? 'this' : target.label} '
             'and hear about new stories.',
       )) {
         return;
       }
       try {
-        await ref.read(followOverridesProvider.notifier).set(target, !following);
+        await ref
+            .read(followOverridesProvider.notifier)
+            .set(target, !following);
         if (!following) {
-          ref.read(analyticsProvider).log(
-            switch (target.kind) {
-              FollowKind.startup => AnalyticsEvent.startupFollow,
-              FollowKind.founder => AnalyticsEvent.founderFollow,
-              FollowKind.topic => AnalyticsEvent.topicFollow,
-            },
-            {'id': target.id},
-          );
+          ref
+              .read(analyticsProvider)
+              .log(
+                switch (target.kind) {
+                  FollowKind.startup => AnalyticsEvent.startupFollow,
+                  FollowKind.founder => AnalyticsEvent.founderFollow,
+                  FollowKind.topic => AnalyticsEvent.topicFollow,
+                },
+                {'id': target.id},
+              );
         }
       } on Object catch (e) {
         if (context.mounted) showCommunityError(context, e);
@@ -266,7 +283,9 @@ class SaveEntityButton extends ConsumerWidget {
       tooltip: saved ? 'Remove from saved' : 'Save',
       onPressed: () async {
         HapticFeedback.lightImpact();
-        final nowSaved = await ref.read(savedEntitiesProvider.notifier).toggle(entity);
+        final nowSaved = await ref
+            .read(savedEntitiesProvider.notifier)
+            .toggle(entity);
         if (context.mounted) {
           showMessage(context, nowSaved ? 'Saved' : 'Removed from saved');
         }

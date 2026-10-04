@@ -23,9 +23,11 @@ class FollowingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kinds = [
-      if (ref.watch(featureProvider(Feature.startupFollows))) FollowKind.startup,
+      if (ref.watch(featureProvider(Feature.startupFollows)))
+        FollowKind.startup,
       if (ref.watch(featureProvider(Feature.topicFollows))) FollowKind.topic,
-      if (ref.watch(featureProvider(Feature.founderFollows))) FollowKind.founder,
+      if (ref.watch(featureProvider(Feature.founderFollows)))
+        FollowKind.founder,
     ];
     if (kinds.isEmpty) {
       return Scaffold(
@@ -84,12 +86,17 @@ class _FollowList extends ConsumerWidget {
           FollowKind.founder => 'No founders yet',
         },
         message: switch (kind) {
-          FollowKind.startup => 'Tap Follow on a startup profile to get news about it.',
-          FollowKind.topic => 'Tap Follow on a topic to hear about new stories.',
-          FollowKind.founder => 'Tap Follow on a founder to hear about new stories.',
+          FollowKind.startup =>
+            'Tap Follow on a startup profile to get news about it.',
+          FollowKind.topic =>
+            'Tap Follow on a topic to hear about new stories.',
+          FollowKind.founder =>
+            'Tap Follow on a founder to hear about new stories.',
         },
         actionLabel: kind == FollowKind.topic ? null : 'Explore startups',
-        onAction: kind == FollowKind.topic ? null : () => context.go(Routes.startups),
+        onAction: kind == FollowKind.topic
+            ? null
+            : () => context.go(Routes.startups),
       );
     }
     if (kind == FollowKind.startup) return _Watchlist(items: items);
@@ -100,7 +107,9 @@ class _FollowList extends ConsumerWidget {
         final item = items[i];
         return ListTile(
           leading: Icon(
-            kind == FollowKind.topic ? Icons.tag_rounded : Icons.person_outline_rounded,
+            kind == FollowKind.topic
+                ? Icons.tag_rounded
+                : Icons.person_outline_rounded,
           ),
           title: Text(item.label),
           onTap: () => context.push(
@@ -166,7 +175,9 @@ class _WatchlistTile extends ConsumerWidget {
       startup?.country,
       startup?.stage,
     ].whereType<String>().join(' · ');
-    final logo = startup?.logo ?? (item.image == null ? null : MediaImage.single(item.image!));
+    final logo =
+        startup?.logo ??
+        (item.image == null ? null : MediaImage.single(item.image!));
     return InkWell(
       onTap: () => context.push(Routes.startup(item.target.id)),
       child: Padding(
@@ -182,7 +193,10 @@ class _WatchlistTile extends ConsumerWidget {
                 child: logo == null
                     ? ColoredBox(
                         color: context.brand.accentSoft,
-                        child: Icon(Icons.rocket_launch_outlined, color: context.brand.accentText),
+                        child: Icon(
+                          Icons.rocket_launch_outlined,
+                          color: context.brand.accentText,
+                        ),
                       )
                     : AppImage(image: logo, allowCropped: true),
               ),
@@ -192,7 +206,10 @@ class _WatchlistTile extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(startup?.name ?? item.label, style: context.text.titleMedium),
+                  Text(
+                    startup?.name ?? item.label,
+                    style: context.text.titleMedium,
+                  ),
                   if (details.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(details, style: context.text.bodySmall),
@@ -200,12 +217,17 @@ class _WatchlistTile extends ConsumerWidget {
                   if (latest != null && latest.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     InkWell(
-                      onTap: () => context.push(Routes.article(latest.first.id), extra: latest.first),
+                      onTap: () => context.push(
+                        Routes.article(latest.first.id),
+                        extra: latest.first,
+                      ),
                       child: Text(
                         'Latest: ${latest.first.title} · ${relativeDate(latest.first.publishedAt)}',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: context.text.bodySmall?.copyWith(color: context.brand.accentText),
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.brand.accentText,
+                        ),
                       ),
                     ),
                   ],
@@ -233,7 +255,9 @@ class MyCommentsScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: notifier.refresh,
         child: switch (state) {
-          _ when state.isInitialLoading => const Center(child: CircularProgressIndicator()),
+          _ when state.isInitialLoading => const Center(
+            child: CircularProgressIndicator(),
+          ),
           _ when state.error != null => ListView(
             children: [ErrorView(error: state.error!, onRetry: notifier.retry)],
           ),
@@ -251,8 +275,12 @@ class MyCommentsScreen extends ConsumerWidget {
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, i) {
               if (i == state.items.length) {
-                if (state.hasMore && !state.loading && state.loadMoreError == null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) => notifier.loadMore());
+                if (state.hasMore &&
+                    !state.loading &&
+                    state.loadMoreError == null) {
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => notifier.loadMore(),
+                  );
                 }
                 return LoadMoreFooter(
                   isLoading: state.loading || state.hasMore,
@@ -276,8 +304,11 @@ class MyCommentsScreen extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  [relativeDate(c.createdAt), ?status, if (c.likeCount > 0) '${c.likeCount} likes']
-                      .join(' · '),
+                  [
+                    relativeDate(c.createdAt),
+                    ?status,
+                    if (c.likeCount > 0) '${c.likeCount} likes',
+                  ].join(' · '),
                 ),
                 onTap: () => context.push(Routes.articleComments(c.articleId)),
               );
@@ -299,7 +330,8 @@ class PublicProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(_profileProvider(uid));
     final me = ref.watch(currentUidProvider);
-    final blocked = ref.watch(blockedUsersProvider).value?.contains(uid) ?? false;
+    final blocked =
+        ref.watch(blockedUsersProvider).value?.contains(uid) ?? false;
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -310,9 +342,16 @@ class PublicProfileScreen extends ConsumerWidget {
                   await _report(context, ref);
                 } else {
                   try {
-                    await ref.read(communityApiProvider).setBlocked(uid, blocked: !blocked);
+                    await ref
+                        .read(communityApiProvider)
+                        .setBlocked(uid, blocked: !blocked);
                     if (context.mounted) {
-                      showMessage(context, blocked ? 'Unblocked' : 'Blocked. Their comments are hidden.');
+                      showMessage(
+                        context,
+                        blocked
+                            ? 'Unblocked'
+                            : 'Blocked. Their comments are hidden.',
+                      );
                     }
                   } on Object catch (e) {
                     if (context.mounted) showCommunityError(context, e);
@@ -321,7 +360,10 @@ class PublicProfileScreen extends ConsumerWidget {
               },
               itemBuilder: (_) => [
                 const PopupMenuItem(value: 'report', child: Text('Report')),
-                PopupMenuItem(value: 'block', child: Text(blocked ? 'Unblock' : 'Block')),
+                PopupMenuItem(
+                  value: 'block',
+                  child: Text(blocked ? 'Unblock' : 'Block'),
+                ),
               ],
             ),
         ],
@@ -334,7 +376,8 @@ class PublicProfileScreen extends ConsumerWidget {
         AsyncData() => const MessageView(
           icon: Icons.lock_outline_rounded,
           title: 'This profile is private',
-          message: 'Only their name and username are shown with their comments.',
+          message:
+              'Only their name and username are shown with their comments.',
         ),
         AsyncError(:final error) => ErrorView(
           error: error,
@@ -353,24 +396,32 @@ class PublicProfileScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final r in ReportReason.values)
-              ListTile(title: Text(r.label), onTap: () => Navigator.pop(context, r)),
+              ListTile(
+                title: Text(r.label),
+                onTap: () => Navigator.pop(context, r),
+              ),
           ],
         ),
       ),
     );
     if (reason == null) return;
     try {
-      await ref.read(communityApiProvider).report(targetType: 'user', targetId: uid, reason: reason);
-      if (context.mounted) showMessage(context, 'Thanks. Our moderators will review it.');
+      await ref
+          .read(communityApiProvider)
+          .report(targetType: 'user', targetId: uid, reason: reason);
+      if (context.mounted) {
+        showMessage(context, 'Thanks. Our moderators will review it.');
+      }
     } on Object catch (e) {
       if (context.mounted) showCommunityError(context, e);
     }
   }
 }
 
-final _profileProvider = FutureProvider.autoDispose.family<UserProfile?, String>(
-  (ref, uid) => ref.watch(communityApiProvider).profile(uid),
-);
+final _profileProvider = FutureProvider.autoDispose
+    .family<UserProfile?, String>(
+      (ref, uid) => ref.watch(communityApiProvider).profile(uid),
+    );
 
 /// Picture, name, @username, bio, joined date and counts. Shows only
 /// public profile fields, never email or ids.
@@ -388,16 +439,23 @@ class ProfileHeader extends StatelessWidget {
       children: [
         Row(
           children: [
-            UserAvatar(name: profile.displayName, photoUrl: profile.photoUrl, size: 64),
+            UserAvatar(
+              name: profile.displayName,
+              photoUrl: profile.photoUrl,
+              size: 64,
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(profile.displayName, style: context.text.titleLarge),
-                  Text('@${profile.username}', style: context.text.bodyMedium?.copyWith(
-                    color: context.brand.muted,
-                  )),
+                  Text(
+                    '@${profile.username}',
+                    style: context.text.bodyMedium?.copyWith(
+                      color: context.brand.muted,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -418,7 +476,10 @@ class ProfileHeader extends StatelessWidget {
                 style: context.text.bodySmall,
               ),
             if (isMe || profile.showActivity) ...[
-              Text('${profile.followingCount} following', style: context.text.bodySmall),
+              Text(
+                '${profile.followingCount} following',
+                style: context.text.bodySmall,
+              ),
               Text(
                 '${profile.commentCount} ${profile.commentCount == 1 ? 'comment' : 'comments'}',
                 style: context.text.bodySmall,
@@ -432,8 +493,18 @@ class ProfileHeader extends StatelessWidget {
 
   static String _monthYear(DateTime d) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June', 'July',
-      'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[d.month - 1]} ${d.year}';
   }

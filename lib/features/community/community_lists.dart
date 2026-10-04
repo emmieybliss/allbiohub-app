@@ -9,8 +9,10 @@ import '../../core/models/startup.dart';
 import '../../core/providers.dart';
 import '../home/home_providers.dart';
 
-typedef CursorFetcher<T> =
-    Future<CursorPage<T>> Function(Ref ref, Object? cursor);
+typedef CursorFetcher<T> = Future<CursorPage<T>> Function(
+  Ref ref,
+  Object? cursor,
+);
 
 class CursorListState<T> {
   const CursorListState({
@@ -95,27 +97,35 @@ class CursorListNotifier<T> extends Notifier<CursorListState<T>> {
   }
 }
 
-final notificationsListProvider = NotifierProvider.autoDispose<
-  CursorListNotifier<AppNotification>,
-  CursorListState<AppNotification>
->(
-  () => CursorListNotifier((ref, cursor) {
-    final uid = ref.read(currentUidProvider);
-    if (uid == null) return Future.value(const CursorPage([], hasMore: false));
-    return ref.read(communityApiProvider).notifications(uid, cursor: cursor);
-  }),
-);
+final notificationsListProvider =
+    NotifierProvider.autoDispose<
+      CursorListNotifier<AppNotification>,
+      CursorListState<AppNotification>
+    >(
+      () => CursorListNotifier((ref, cursor) {
+        final uid = ref.read(currentUidProvider);
+        if (uid == null) {
+          return Future.value(const CursorPage([], hasMore: false));
+        }
+        return ref
+            .read(communityApiProvider)
+            .notifications(uid, cursor: cursor);
+      }),
+    );
 
-final myCommentsProvider = NotifierProvider.autoDispose<
-  CursorListNotifier<Comment>,
-  CursorListState<Comment>
->(
-  () => CursorListNotifier((ref, cursor) {
-    final uid = ref.read(currentUidProvider);
-    if (uid == null) return Future.value(const CursorPage([], hasMore: false));
-    return ref.read(communityApiProvider).commentsBy(uid, cursor: cursor);
-  }),
-);
+final myCommentsProvider =
+    NotifierProvider.autoDispose<
+      CursorListNotifier<Comment>,
+      CursorListState<Comment>
+    >(
+      () => CursorListNotifier((ref, cursor) {
+        final uid = ref.read(currentUidProvider);
+        if (uid == null) {
+          return Future.value(const CursorPage([], hasMore: false));
+        }
+        return ref.read(communityApiProvider).commentsBy(uid, cursor: cursor);
+      }),
+    );
 
 final mySubmissionsProvider = FutureProvider.autoDispose<List<Submission>>((
   ref,
@@ -161,7 +171,8 @@ final mentionedStartupsProvider = FutureProvider.autoDispose
     .family<List<Startup>, Article>((ref, article) async {
       final names = await ref.watch(startupNamesProvider.future);
       if (names.isEmpty) return const [];
-      final text = '${article.title} ${article.excerpt} ${article.contentHtml ?? ''}';
+      final text =
+          '${article.title} ${article.excerpt} ${article.contentHtml ?? ''}';
       final matches = names.where((s) => _mentions(text, s.name)).take(3);
       return matches.toList();
     });

@@ -16,9 +16,12 @@ import 'reactions_providers.dart';
 /// "Comments · Join the conversation" block at the end of a story. Shows
 /// the real comment count and opens the full conversation.
 class CommentsEntry extends ConsumerWidget {
-  const CommentsEntry({super.key, required this.articleId});
+  const CommentsEntry({super.key, required this.articleId, this.title});
 
   final int articleId;
+
+  /// The story's title, shown above the comments.
+  final String? title;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,9 +40,12 @@ class CommentsEntry extends ConsumerWidget {
             Text('Comments', style: context.text.titleLarge),
             if (count > 0) ...[
               const SizedBox(width: 8),
-              Text('$count', style: context.text.titleMedium?.copyWith(
-                color: context.brand.muted,
-              )),
+              Text(
+                '$count',
+                style: context.text.titleMedium?.copyWith(
+                  color: context.brand.muted,
+                ),
+              ),
             ],
           ],
         ),
@@ -52,17 +58,26 @@ class CommentsEntry extends ConsumerWidget {
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
-            onTap: () => context.push(Routes.articleComments(articleId)),
+            onTap: () =>
+                context.push(Routes.articleComments(articleId), extra: title),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  UserAvatar(name: me?.displayName, photoUrl: me?.photoUrl, size: 32),
+                  UserAvatar(
+                    name: me?.displayName,
+                    photoUrl: me?.photoUrl,
+                    size: 32,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      count == 0 ? 'Join the conversation' : 'Read and join the conversation',
-                      style: context.text.bodyLarge?.copyWith(color: context.brand.muted),
+                      count == 0
+                          ? 'Join the conversation'
+                          : 'Read and join the conversation',
+                      style: context.text.bodyLarge?.copyWith(
+                        color: context.brand.muted,
+                      ),
                     ),
                   ),
                   const Icon(Icons.chevron_right_rounded),
@@ -180,8 +195,14 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
         title: const Text('Delete comment?'),
         content: const Text("This can't be undone."),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -196,15 +217,25 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
   Future<void> _report(Comment comment) async {
     if (!await requireAccount(context, ref, profile: false)) return;
     if (!mounted) return;
-    await showReportSheet(context, ref, targetType: 'comment', targetId: comment.id);
+    await showReportSheet(
+      context,
+      ref,
+      targetType: 'comment',
+      targetId: comment.id,
+    );
   }
 
   Future<void> _block(Comment comment) async {
     if (!await requireAccount(context, ref, profile: false)) return;
     try {
-      await ref.read(communityApiProvider).setBlocked(comment.author.uid, blocked: true);
+      await ref
+          .read(communityApiProvider)
+          .setBlocked(comment.author.uid, blocked: true);
       if (mounted) {
-        showMessage(context, "You won't see @${comment.author.username}'s comments.");
+        showMessage(
+          context,
+          "You won't see @${comment.author.username}'s comments.",
+        );
       }
     } on Object catch (e) {
       if (mounted) showCommunityError(context, e);
@@ -299,7 +330,9 @@ class _CommentsScreenState extends ConsumerState<CommentsScreen> {
                   itemCount: threads.length + 1,
                   itemBuilder: (context, i) {
                     if (i == threads.length) {
-                      if (state.hasMore && !state.loading && state.loadMoreError == null) {
+                      if (state.hasMore &&
+                          !state.loading &&
+                          state.loadMoreError == null) {
                         WidgetsBinding.instance.addPostFrameCallback(
                           (_) => _notifier.loadMore(),
                         );
@@ -468,13 +501,20 @@ class CommentTile extends StatelessWidget {
                   children: [
                     Text(author.displayName, style: context.text.titleSmall),
                     if (author.username.isNotEmpty)
-                      Text('@${author.username}', style: context.text.bodySmall),
+                      Text(
+                        '@${author.username}',
+                        style: context.text.bodySmall,
+                      ),
                     Text(
                       '· ${relativeDate(comment.createdAt)}${comment.editedAt != null ? ' · edited' : ''}',
                       style: context.text.bodySmall,
                     ),
                     if (comment.pinned)
-                      Icon(Icons.push_pin_rounded, size: 14, color: brand.accentText),
+                      Icon(
+                        Icons.push_pin_rounded,
+                        size: 14,
+                        color: brand.accentText,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -483,7 +523,9 @@ class CommentTile extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       'Awaiting review · only you can see this',
-                      style: context.text.labelSmall?.copyWith(color: brand.accentText),
+                      style: context.text.labelSmall?.copyWith(
+                        color: brand.accentText,
+                      ),
                     ),
                   ),
                 Text.rich(
@@ -492,7 +534,10 @@ class CommentTile extends StatelessWidget {
                       if (comment.replyToUsername != null && comment.depth >= 2)
                         TextSpan(
                           text: '@${comment.replyToUsername} ',
-                          style: TextStyle(color: brand.accentText, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: brand.accentText,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       TextSpan(text: comment.body),
                     ],
@@ -508,12 +553,15 @@ class CommentTile extends StatelessWidget {
                       ),
                       onPressed: () => onLike(comment),
                       icon: Icon(
-                        liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        liked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
                         size: 18,
                       ),
                       label: Text(
                         comment.likeCount > 0 ? '${comment.likeCount}' : 'Like',
-                        semanticsLabel: '${liked ? 'Unlike' : 'Like'}, ${comment.likeCount} likes',
+                        semanticsLabel:
+                            '${liked ? 'Unlike' : 'Like'}, ${comment.likeCount} likes',
                       ),
                     ),
                     TextButton(
@@ -617,7 +665,9 @@ class _Composer extends StatelessWidget {
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Icon(editing ? Icons.check_rounded : Icons.send_rounded),
+                        : Icon(
+                            editing ? Icons.check_rounded : Icons.send_rounded,
+                          ),
                   ),
                 ],
               ),
@@ -648,7 +698,10 @@ Future<void> showReportSheet(
             child: Text("What's wrong?", style: context.text.titleLarge),
           ),
           for (final r in ReportReason.values)
-            ListTile(title: Text(r.label), onTap: () => Navigator.pop(context, r)),
+            ListTile(
+              title: Text(r.label),
+              onTap: () => Navigator.pop(context, r),
+            ),
         ],
       ),
     ),

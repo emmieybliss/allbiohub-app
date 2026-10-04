@@ -151,9 +151,7 @@ class CommentsNotifier extends Notifier<CommentsState> {
 
   void _updateThread(String rootId, CommentThread Function(CommentThread) f) {
     state = state.copyWith(
-      threads: [
-        for (final t in state.threads) t.root.id == rootId ? f(t) : t,
-      ],
+      threads: [for (final t in state.threads) t.root.id == rootId ? f(t) : t],
     );
   }
 
@@ -172,10 +170,7 @@ class CommentsNotifier extends Notifier<CommentsState> {
         final seen = {for (final r in t.replies) r.id};
         return CommentThread(
           root: t.root,
-          replies: [
-            ...t.replies,
-            ...page.items.where((r) => seen.add(r.id)),
-          ],
+          replies: [...t.replies, ...page.items.where((r) => seen.add(r.id))],
           repliesCursor: page.cursor,
           repliesLoaded: true,
           hasMoreReplies: page.hasMore,
@@ -264,7 +259,9 @@ class CommentsNotifier extends Notifier<CommentsState> {
           if (t.root.id != comment.id)
             comment.rootId == t.root.id
                 ? t.copyWith(
-                    replies: t.replies.where((r) => r.id != comment.id).toList(),
+                    replies: t.replies
+                        .where((r) => r.id != comment.id)
+                        .toList(),
                   )
                 : t,
       ],
@@ -280,7 +277,11 @@ class CommentsNotifier extends Notifier<CommentsState> {
         Comment(
           id: comment.id,
           articleId: comment.articleId,
-          author: const CommentAuthor(uid: '', username: '', displayName: 'Deleted'),
+          author: const CommentAuthor(
+            uid: '',
+            username: '',
+            displayName: 'Deleted',
+          ),
           body: '',
           createdAt: comment.createdAt,
           deleted: true,

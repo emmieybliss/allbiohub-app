@@ -162,8 +162,10 @@ class FirestoreFeatureFlagSource implements FeatureFlagSource {
 }
 
 class FirebaseAuthRepository implements AuthRepository {
-  FirebaseAuthRepository({required this.googleServerClientId, FirebaseAuth? auth})
-    : _auth = auth ?? FirebaseAuth.instance;
+  FirebaseAuthRepository({
+    required this.googleServerClientId,
+    FirebaseAuth? auth,
+  }) : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
 
@@ -249,7 +251,9 @@ class FirebaseAuthRepository implements AuthRepository {
 
   Future<void> _initGoogle() async {
     if (_googleReady) return;
-    await GoogleSignIn.instance.initialize(serverClientId: googleServerClientId);
+    await GoogleSignIn.instance.initialize(
+      serverClientId: googleServerClientId,
+    );
     _googleReady = true;
   }
 
@@ -422,7 +426,9 @@ class FirebaseCommunityApi implements CommunityApi {
   Stream<AccountSettings?> watchAccount(String uid) => _db
       .doc('users/$uid')
       .snapshots()
-      .map((s) => s.exists ? AccountSettings.fromJson(plainMap(s.data()!)) : null)
+      .map(
+        (s) => s.exists ? AccountSettings.fromJson(plainMap(s.data()!)) : null,
+      )
       .handleError((Object _) {}, test: (e) => e is FirebaseException);
 
   @override
@@ -476,15 +482,18 @@ class FirebaseCommunityApi implements CommunityApi {
     _ => 'jpg',
   };
 
-  Future<String> _upload(String folder, Uint8List bytes, String type) =>
-      _read(() async {
-        final path =
-            '$folder/$_uid/${DateTime.now().millisecondsSinceEpoch}.${_extension(type)}';
-        await _storage
-            .ref(path)
-            .putData(bytes, SettableMetadata(contentType: type));
-        return path;
-      });
+  Future<String> _upload(
+    String folder,
+    Uint8List bytes,
+    String type,
+  ) => _read(() async {
+    final path =
+        '$folder/$_uid/${DateTime.now().millisecondsSinceEpoch}.${_extension(type)}';
+    await _storage
+        .ref(path)
+        .putData(bytes, SettableMetadata(contentType: type));
+    return path;
+  });
 
   @override
   Future<void> setProfilePhoto(Uint8List bytes, String contentType) async {
@@ -664,7 +673,10 @@ class FirebaseCommunityApi implements CommunityApi {
 
   @override
   Future<int> likeComment(String commentId, {required bool like}) async {
-    final r = await _call('likeComment', {'commentId': commentId, 'like': like});
+    final r = await _call('likeComment', {
+      'commentId': commentId,
+      'like': like,
+    });
     return (r['likeCount'] as num?)?.toInt() ?? 0;
   }
 
@@ -707,7 +719,9 @@ class FirebaseCommunityApi implements CommunityApi {
       .limit(500)
       .snapshots()
       .map(
-        (s) => [for (final d in s.docs) FollowedItem.fromJson(plainMap(d.data()))],
+        (s) => [
+          for (final d in s.docs) FollowedItem.fromJson(plainMap(d.data())),
+        ],
       )
       .handleError((Object _) {}, test: (e) => e is FirebaseException);
 
@@ -850,7 +864,10 @@ class FirebaseCommunityApi implements CommunityApi {
 
   @override
   Future<Poll> vote(Poll poll, String optionId) async {
-    final r = await _call('votePoll', {'pollId': poll.id, 'optionId': optionId});
+    final r = await _call('votePoll', {
+      'pollId': poll.id,
+      'optionId': optionId,
+    });
     return Poll.fromJson(poll.id, {
       'kind': poll.kind == PollKind.questionOfTheDay ? 'qotd' : 'poll',
       'question': poll.question,
@@ -902,9 +919,9 @@ class FirebaseCommunityApi implements CommunityApi {
 
   @override
   Future<void> markRead(String uid, String notificationId) => _read(
-    () => _db
-        .doc('users/$uid/notifications/$notificationId')
-        .update({'read': true}),
+    () => _db.doc('users/$uid/notifications/$notificationId').update({
+      'read': true,
+    }),
   );
 
   @override
@@ -960,7 +977,8 @@ class FirebaseCommunityApi implements CommunityApi {
       load('startupClaims', SubmissionKind.claim, (d) => '${d['startupName']}'),
     ]);
     return all.expand((l) => l).toList()..sort(
-      (a, b) => (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      (a, b) =>
+          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
     );
   });
 }
