@@ -47,8 +47,10 @@ class _AllBioHubAppState extends ConsumerState<AllBioHubApp> {
     ref.read(analyticsProvider).log(AnalyticsEvent.notificationOpen, {
       'path': target.url.path,
     });
-    final location =
-        ref.read(deepLinkParserProvider).locationFor(target.url) ?? Routes.home;
+    final location = target.url.hasScheme
+        ? ref.read(deepLinkParserProvider).locationFor(target.url) ??
+              Routes.home
+        : target.url.toString();
     final router = ref.read(routerProvider);
     final current = router.routerDelegate.currentConfiguration.uri.path;
     if (current == Routes.splash || current == Routes.onboarding) {

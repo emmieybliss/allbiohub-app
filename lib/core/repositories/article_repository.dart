@@ -34,6 +34,7 @@ class ArticleRepository {
     int page = 1,
     int perPage = 10,
     int? categoryId,
+    List<int> categoryIds = const [],
     int? tagId,
     List<int> excludeIds = const [],
     bool forceRefresh = false,
@@ -46,7 +47,9 @@ class ArticleRepository {
         query: {
           'page': page,
           'per_page': perPage,
-          'categories': categoryId,
+          'categories': categoryIds.isNotEmpty
+              ? categoryIds.join(',')
+              : categoryId,
           'tags': tagId,
           if (excludeIds.isNotEmpty) 'exclude': excludeIds.join(','),
           '_embed': _embed,

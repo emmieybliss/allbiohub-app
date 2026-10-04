@@ -77,6 +77,8 @@ test("blocked terms match whole words only", () => {
 test("slugs", () => {
   assert.equal(slugify("Tosin Eniolorunda"), "tosin-eniolorunda");
   assert.equal(slugify("  Olúgbénga  Agboola! "), "olugbenga-agboola");
+  assert.equal(slugify("Adébáyọ̀ Ọlọ́rùnṣọlá"), "adebayo-olorunsola");
+  assert.equal(slugify("Jürgen Straße"), "jurgen-strasse");
 });
 
 test("startup mentions are whole-word and case-insensitive", () => {

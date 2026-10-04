@@ -136,15 +136,23 @@ export function containsBlockedTerm(text: string, terms: readonly string[]): boo
   });
 }
 
-/** Slug used for ids of founders and topics: "Tosin Eniolorunda" → "tosin-eniolorunda". */
+const ACCENTS: Record<string, string> = {
+  a: "àáâãäåāăąạ", c: "çćč", d: "ďđ", e: "èéêëēėęěẹ", i: "ìíîïīįị", n: "ñńňṅ",
+  o: "òóôõöøōọ", r: "ŕř", s: "śšşṣ", t: "ťţ", u: "ùúûüūůűụ", y: "ýÿ", z: "źżž",
+};
+
+/**
+ * Slug used for founder ids: "Tosin Eniolorunda" → "tosin-eniolorunda".
+ * Kept identical to `slugify` in the app (lib/core/utils/text_utils.dart),
+ * so both sides compute the same id: accents from a fixed table, combining
+ * marks dropped, everything else that isn't a-z or 0-9 becomes a dash.
+ */
 export function slugify(input: unknown): string {
-  return String(input ?? "")
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
+  let s = String(input ?? "").toLowerCase().replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss");
+  for (const [plain, accented] of Object.entries(ACCENTS)) {
+    s = s.replace(new RegExp(`[${accented}]`, "g"), plain);
+  }
+  return s.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
 /**
