@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/community/community_providers.dart';
+import '../../core/community/feature_flags.dart';
+import '../../core/community/models.dart';
+import '../../core/community/saved.dart';
 
 import '../../core/models/startup.dart';
 import '../../core/providers.dart';
 import '../../core/repositories/startup_repository.dart';
+import '../../core/routing/routes.dart';
+import '../../core/utils/text_utils.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/link_opener.dart';
@@ -12,6 +20,8 @@ import '../../shared/widgets/common.dart';
 import '../../shared/widgets/skeleton.dart';
 import '../../shared/widgets/state_views.dart';
 import '../articles/article_providers.dart';
+import '../community/community_widgets.dart';
+import '../community/founder_screen.dart';
 import 'startup_providers.dart';
 import 'startup_widgets.dart';
 
@@ -92,6 +102,12 @@ class _Profile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final brand = context.brand;
     final site = Uri.parse(ref.watch(appConfigProvider).siteUrl);
+    final follows = ref.watch(featureProvider(Feature.startupFollows));
+    final founderPages = ref.watch(featureProvider(Feature.founderFollows));
+    final inAppClaim = ref.watch(featureProvider(Feature.startupClaims));
+    void claim() => inAppClaim
+        ? context.push(Routes.claimStartup(startup.slug))
+        : openLink(context, ref, site.replace(path: '/claim-startup/'));
     final facts = <(IconData, String, String?)>[
       (Icons.category_outlined, 'Industry', startup.industry),
       (Icons.public_rounded, 'Country', startup.country),
@@ -119,6 +135,7 @@ class _Profile extends ConsumerWidget {
           pinned: true,
           title: Text(startup.name),
           actions: [
+            SaveEntityButton(entity: savedStartup(startup)),
             IconButton(
               tooltip: 'Share',
               icon: const Icon(Icons.ios_share_rounded),
@@ -161,6 +178,27 @@ class _Profile extends ConsumerWidget {
                 ],
                 const SizedBox(height: 12),
                 StartupBadges(startup: startup, showClaimed: true),
+                if (follows) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      FollowButton(
+                        target: FollowTarget(
+                          FollowKind.startup,
+                          startup.slug,
+                          label: startup.name,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Get alerts about new coverage and profile updates.',
+                          style: context.text.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -230,10 +268,24 @@ class _Profile extends ConsumerWidget {
                       ),
                       title: Text(f.name),
                       subtitle: f.role == null ? null : Text(f.role!),
-                      trailing: f.profileUrl == null
+                      trailing: founderPages && slugify(f.name).isNotEmpty
+                          ? FollowButton(
+                              dense: true,
+                              target: FollowTarget(
+                                FollowKind.founder,
+                                slugify(f.name),
+                                label: f.name,
+                              ),
+                            )
+                          : f.profileUrl == null
                           ? null
                           : const Icon(Icons.open_in_new_rounded, size: 18),
-                      onTap: f.profileUrl == null
+                      onTap: founderPages && slugify(f.name).isNotEmpty
+                          ? () => context.push(
+                              Routes.founder(slugify(f.name)),
+                              extra: FounderArgs(founder: f, startup: startup),
+                            )
+                          : f.profileUrl == null
                           ? null
                           : () => openLink(
                               context,
@@ -307,11 +359,7 @@ class _Profile extends ConsumerWidget {
                           ),
                           const SizedBox(height: 14),
                           FilledButton(
-                            onPressed: () => openLink(
-                              context,
-                              ref,
-                              site.replace(path: '/claim-startup/'),
-                            ),
+                            onPressed: claim,
                             child: const Text('Claim this startup'),
                           ),
                         ],

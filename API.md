@@ -163,3 +163,9 @@ when they are `true`.
 
 Startup actions (List, Claim, Suggest an update) open the existing website
 forms in an in-app browser tab; the app doesn't submit them itself.
+
+## Community API
+
+Accounts, comments, reactions, follows, polls, notifications and
+submissions use Firebase, not WordPress. The server functions, data model
+and security rules are described in [COMMUNITY.md](COMMUNITY.md).

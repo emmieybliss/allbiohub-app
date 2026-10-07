@@ -88,6 +88,12 @@ class FakeNotifications implements NotificationService {
   @override
   Stream<NotificationTarget> get opened => taps.stream;
 
+  @override
+  Future<String?> token() async => 'test-token';
+
+  @override
+  Stream<String> get tokenRefreshes => const Stream.empty();
+
   void tap(String url) => taps.add(NotificationTarget(Uri.parse(url)));
 }
 

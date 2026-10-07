@@ -38,3 +38,36 @@ String fullDate(DateTime date, {DateTime? now}) {
   return DateFormat(date.year == current.year ? 'd MMM' : 'd MMM yyyy')
       .format(date);
 }
+
+const _accents = {
+  'a': 'àáâãäåāăąạ',
+  'c': 'çćč',
+  'd': 'ďđ',
+  'e': 'èéêëēėęěẹ',
+  'i': 'ìíîïīįị',
+  'n': 'ñńňṅ',
+  'o': 'òóôõöøōọ',
+  'r': 'ŕř',
+  's': 'śšşṣ',
+  't': 'ťţ',
+  'u': 'ùúûüūůűụ',
+  'y': 'ýÿ',
+  'z': 'źżž',
+};
+
+/// Slug used as a founder's id: "Tosin Eniolorunda" → "tosin-eniolorunda".
+/// Must match `slugify` in firebase/functions/src/validation.ts, which
+/// checks it.
+String slugify(String input) {
+  var s = input
+      .toLowerCase()
+      .replaceAll(RegExp('[̀-ͯ]'), '')
+      .replaceAll('ß', 'ss');
+  for (final e in _accents.entries) {
+    s = s.replaceAll(RegExp('[${e.value}]'), e.key);
+  }
+  s = s
+      .replaceAll(RegExp('[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
+  return s.length > 80 ? s.substring(0, 80) : s;
+}

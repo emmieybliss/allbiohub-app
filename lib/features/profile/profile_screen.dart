@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/community/community_providers.dart';
+import '../../core/community/feature_flags.dart';
+import '../../core/community/saved.dart';
 import '../../core/models/category.dart';
 import '../../core/models/user_preferences.dart';
 import '../../core/providers.dart';
@@ -9,10 +12,13 @@ import '../../core/routing/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/link_opener.dart';
 import '../../shared/widgets/common.dart';
+import '../community/community_widgets.dart';
+import '../community/following_screen.dart' show ProfileHeader;
 import '../discover/discover_screen.dart' show categoryIcon;
 import '../home/home_providers.dart';
 
-/// Settings and information. No account is needed in V1.
+/// The person's account (when community features are on), settings and
+/// information. Reading never needs an account.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -21,8 +27,14 @@ class ProfileScreen extends ConsumerWidget {
     final prefs = ref.watch(preferencesProvider);
     final config = ref.watch(appConfigProvider);
     final version = ref.watch(appVersionProvider);
-    final savedCount = ref.watch(bookmarksProvider.select((b) => b.length));
+    final savedCount =
+        ref.watch(bookmarksProvider.select((b) => b.length)) +
+        ref.watch(savedEntitiesProvider.select((s) => s.length));
     final site = Uri.parse(config.siteUrl);
+    final inAppStories = ref.watch(featureProvider(Feature.storySubmissions));
+    final inAppStartups = ref.watch(
+      featureProvider(Feature.startupSubmissions),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -32,10 +44,11 @@ class ProfileScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
+          const _AccountSection(),
           const _Group('Reading'),
           ListTile(
             leading: const Icon(Icons.bookmark_border_rounded),
-            title: const Text('Saved stories'),
+            title: const Text('Saved'),
             trailing: Text('$savedCount', style: context.text.bodySmall),
             onTap: () => context.go(Routes.saved),
           ),
@@ -106,13 +119,29 @@ class ProfileScreen extends ConsumerWidget {
             title: const Text('About AllBioHub'),
             onTap: () => _about(context, ref, version),
           ),
-          ListTile(
-            leading: const Icon(Icons.edit_note_rounded),
-            title: const Text('Submit a story'),
-            trailing: const Icon(Icons.open_in_new_rounded, size: 18),
-            onTap: () =>
-                openLink(context, ref, site.replace(path: '/submit-a-story/')),
-          ),
+          if (inAppStories)
+            ListTile(
+              leading: const Icon(Icons.edit_note_rounded),
+              title: const Text('Submit a story'),
+              onTap: () => context.push(Routes.submitStory),
+            )
+          else
+            ListTile(
+              leading: const Icon(Icons.edit_note_rounded),
+              title: const Text('Submit a story'),
+              trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+              onTap: () => openLink(
+                context,
+                ref,
+                site.replace(path: '/submit-a-story/'),
+              ),
+            ),
+          if (inAppStartups)
+            ListTile(
+              leading: const Icon(Icons.rocket_launch_outlined),
+              title: const Text('Submit a startup'),
+              onTap: () => context.push(Routes.submitStartup),
+            ),
           if (config.contactEmail.isNotEmpty)
             ListTile(
               leading: const Icon(Icons.mail_outline_rounded),
@@ -259,11 +288,21 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(
                 'You can use AllBioHub without an account. Saved stories, settings and recent searches '
-                'are stored only on this device. The app loads stories and startup profiles from '
+                'are stored on this device. The app loads stories and startup profiles from '
                 'allbiohub.com. Usage events (such as which story was opened) are recorded without your '
                 'name, email or contacts, and only when analytics is enabled in this build.',
                 style: context.text.bodyLarge,
               ),
+              if (ref.read(featureProvider(Feature.accounts))) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'If you create an account, your email, username, profile, comments, reactions, '
+                  'follows, saved items and submissions are stored with AllBioHub so they work on '
+                  'every device. Your email is never shown to other people. You can delete your '
+                  'account at any time in Account settings.',
+                  style: context.text.bodyLarge,
+                ),
+              ],
               if (url.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 OutlinedButton(
@@ -275,6 +314,112 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Sign-in prompt for guests, or the person's profile and community
+/// pages. Hidden entirely while accounts are switched off.
+class _AccountSection extends ConsumerWidget {
+  const _AccountSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(featureProvider(Feature.accounts))) {
+      return const SizedBox.shrink();
+    }
+    final user = ref.watch(authUserProvider).value;
+    if (user == null) {
+      return const Padding(
+        padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+        child: JoinPrompt(
+          title: 'Join the AllBioHub community',
+          message:
+              'React to stories, comment, follow startups and topics, and keep '
+              'your saved items on every device. Reading stays free without an account.',
+        ),
+      );
+    }
+    bool on(Feature f) => ref.watch(featureProvider(f));
+    final profile = ref.watch(myProfileProvider).value;
+    final unread = ref.watch(unreadNotificationsProvider).value ?? 0;
+    final following =
+        on(Feature.startupFollows) ||
+        on(Feature.topicFollows) ||
+        on(Feature.founderFollows);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+          child: profile == null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user.email ?? '', style: context.text.titleMedium),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => context.push(Routes.chooseUsername),
+                      child: const Text('Choose a username'),
+                    ),
+                  ],
+                )
+              : ProfileHeader(profile: profile, isMe: true),
+        ),
+        if (profile != null)
+          ListTile(
+            leading: const Icon(Icons.person_outline_rounded),
+            title: const Text('Edit profile'),
+            onTap: () => context.push(Routes.editProfile),
+          ),
+        const _Group('Community'),
+        if (on(Feature.notificationCenter))
+          ListTile(
+            leading: const Icon(Icons.notifications_none_rounded),
+            title: const Text('Notifications'),
+            trailing: unread > 0
+                ? Badge(label: Text(unread > 99 ? '99+' : '$unread'))
+                : null,
+            onTap: () => context.push(Routes.notificationCenter),
+          ),
+        if (following)
+          ListTile(
+            leading: const Icon(Icons.favorite_border_rounded),
+            title: const Text('Following'),
+            onTap: () => context.push(Routes.following),
+          ),
+        if (on(Feature.startupFollows))
+          ListTile(
+            leading: const Icon(Icons.visibility_outlined),
+            title: const Text('Startup watchlist'),
+            onTap: () => context.push(Routes.watchlist),
+          ),
+        if (on(Feature.comments))
+          ListTile(
+            leading: const Icon(Icons.chat_bubble_outline_rounded),
+            title: const Text('My comments'),
+            onTap: () => context.push(Routes.myComments),
+          ),
+        if (on(Feature.storySubmissions) ||
+            on(Feature.startupSubmissions) ||
+            on(Feature.startupClaims))
+          ListTile(
+            leading: const Icon(Icons.outbox_outlined),
+            title: const Text('My submissions'),
+            onTap: () => context.push(Routes.mySubmissions),
+          ),
+        if (on(Feature.polls))
+          ListTile(
+            leading: const Icon(Icons.poll_outlined),
+            title: const Text('Polls'),
+            onTap: () => context.push(Routes.polls),
+          ),
+        ListTile(
+          leading: const Icon(Icons.manage_accounts_outlined),
+          title: const Text('Account settings'),
+          onTap: () => context.push(Routes.accountSettings),
+        ),
+      ],
     );
   }
 }

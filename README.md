@@ -11,9 +11,13 @@ and the African startup directory, in a native Flutter app (no WebView).
   with AllBioHub coverage. These read the startup API from the WordPress
   add-on in [wordpress/allbiohub-app-api](wordpress/allbiohub-app-api/README.md),
   which has to be installed on the website once.
+- **Community (switched off until set up):** accounts, profiles, reactions,
+  comments, follows, polls, notifications and submissions, on Firebase. Each
+  feature is turned on remotely; see [COMMUNITY.md](COMMUNITY.md) for the
+  setup checklist.
 
 Docs: [ARCHITECTURE.md](ARCHITECTURE.md) · [API.md](API.md) ·
-[RELEASE.md](RELEASE.md) · [TESTING.md](TESTING.md)
+[COMMUNITY.md](COMMUNITY.md) · [RELEASE.md](RELEASE.md) · [TESTING.md](TESTING.md)
 
 ## Requirements
 
@@ -232,7 +236,8 @@ feature graphic.
   them; Featured uses sticky posts, else the newest stories.
 - **Coverage is a name match.** Startup coverage searches stories for the
   startup's name; an explicit relationship in the API would be more precise.
-- **No accounts or cloud sync** in V1; bookmarks are on-device.
+- **Community features need Firebase setup** (COMMUNITY.md). Until then the
+  app has no accounts and bookmarks stay on the device.
 - **Website gaps:** no Technology/Spotlight categories exist on the site
   yet; the app adapts to whatever categories exist.
 

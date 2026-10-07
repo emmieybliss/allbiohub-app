@@ -13,7 +13,23 @@ enum AnalyticsEvent {
   startupShare('startup_share'),
   categoryView('category_view'),
   search('search'),
-  notificationOpen('notification_open');
+  notificationOpen('notification_open'),
+  articleReaction('article_reaction'),
+  articleComment('article_comment'),
+  commentLike('comment_like'),
+  startupFollow('startup_follow'),
+  startupSave('startup_save'),
+  founderFollow('founder_follow'),
+  founderSave('founder_save'),
+  founderShare('founder_share'),
+  topicFollow('topic_follow'),
+  pollVote('poll_vote'),
+  pollShare('poll_share'),
+  storySubmission('story_submission'),
+  startupSubmission('startup_submission'),
+  startupClaim('startup_claim'),
+  signUp('sign_up'),
+  login('login');
 
   const AnalyticsEvent(this.name);
 

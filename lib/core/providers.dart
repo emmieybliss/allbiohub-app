@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'cache/cache_store.dart';
+import 'community/saved.dart';
 import 'cache/local_store.dart';
 import 'config/app_config.dart';
 import 'models/article.dart';
@@ -132,18 +133,42 @@ class BookmarksNotifier extends Notifier<List<Article>> {
       state = state.where((a) => a.id != article.id).toList();
       await repo.remove(article.id);
       analytics.log(AnalyticsEvent.articleUnsave, {'article_id': article.id});
+      _mirror(article, saved: false);
       return false;
     }
     state = [article, ...state];
     await repo.save(article);
     analytics.log(AnalyticsEvent.articleSave, {'article_id': article.id});
+    _mirror(article, saved: true);
     return true;
   }
 
   Future<void> remove(int id) async {
+    final article = state.where((a) => a.id == id).firstOrNull;
     state = state.where((a) => a.id != id).toList();
     await ref.read(bookmarkRepositoryProvider).remove(id);
+    if (article != null) _mirror(article, saved: false);
   }
+
+  /// Adds a story saved to the account on another phone.
+  Future<void> addFromAccount(Article article) async {
+    if (isSaved(article.id)) return;
+    state = [...state, article];
+    await ref.read(bookmarkRepositoryProvider).save(article);
+  }
+
+  /// Copies the change to the signed-in account (when sync is on).
+  void _mirror(Article article, {required bool saved}) => ref
+      .read(savedSyncProvider)
+      .mirror(
+        kind: 'article',
+        id: '${article.id}',
+        title: article.title,
+        image: article.image?.urlFor(600),
+        url: article.link,
+        data: saved ? article.toJson() : null,
+        saved: saved,
+      );
 }
 
 final bookmarksProvider = NotifierProvider<BookmarksNotifier, List<Article>>(

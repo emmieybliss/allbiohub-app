@@ -22,6 +22,7 @@ Future<bool> initializeFirebase(AppConfig config) async {
         appId: config.firebaseAppId,
         messagingSenderId: config.firebaseMessagingSenderId,
         projectId: config.firebaseProjectId,
+        storageBucket: config.storageBucket,
       ),
     );
     return true;
@@ -58,8 +59,12 @@ class FirebaseNotificationService implements NotificationService {
   }
 
   void _emit(RemoteMessage message) {
+    // An allbiohub.com link, or an app path such as /me/submissions for
+    // personal notifications (replies, submission updates).
     final url = Uri.tryParse('${message.data['url'] ?? ''}');
-    if (url != null && url.hasScheme) _opened.add(NotificationTarget(url));
+    if (url != null && (url.hasScheme || url.path.startsWith('/'))) {
+      _opened.add(NotificationTarget(url));
+    }
   }
 
   @override
@@ -94,6 +99,19 @@ class FirebaseNotificationService implements NotificationService {
 
   @override
   Stream<NotificationTarget> get opened => _opened.stream;
+
+  @override
+  Future<String?> token() async {
+    try {
+      return await _messaging.getToken();
+    } on Object catch (e) {
+      debugPrint('No push token: $e');
+      return null;
+    }
+  }
+
+  @override
+  Stream<String> get tokenRefreshes => _messaging.onTokenRefresh;
 }
 
 /// Firebase Analytics with only the app's own content events (ids, slugs,

@@ -29,6 +29,12 @@ abstract class NotificationService {
 
   /// Notifications the person tapped.
   Stream<NotificationTarget> get opened;
+
+  /// This device's push token, so personal notifications (replies, followed
+  /// startups) can reach it. Null when push isn't available.
+  Future<String?> token();
+
+  Stream<String> get tokenRefreshes;
 }
 
 class DisabledNotificationService implements NotificationService {
@@ -48,4 +54,10 @@ class DisabledNotificationService implements NotificationService {
 
   @override
   Stream<NotificationTarget> get opened => const Stream.empty();
+
+  @override
+  Future<String?> token() async => null;
+
+  @override
+  Stream<String> get tokenRefreshes => const Stream.empty();
 }

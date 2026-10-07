@@ -6,6 +6,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'app.dart';
 import 'core/cache/cache_store.dart';
 import 'core/cache/local_store.dart';
+import 'core/community/community_providers.dart';
+import 'core/community/firebase_community.dart';
 import 'core/config/app_config.dart';
 import 'core/providers.dart';
 import 'core/services/analytics_service.dart';
@@ -24,7 +26,8 @@ Future<void> main() async {
       .catchError((Object _) => '');
   // Notifications and analytics stay off unless the build has Firebase
   // settings (README → Firebase), or if Firebase doesn't answer in time.
-  final firebase = await initializeFirebase(AppConfig.fromEnvironment())
+  final config = AppConfig.fromEnvironment();
+  final firebase = await initializeFirebase(config)
       .timeout(const Duration(seconds: 5), onTimeout: () => false);
 
   runApp(
@@ -36,6 +39,7 @@ Future<void> main() async {
         cacheStoreProvider.overrideWithValue(stores.cache),
         bookmarkStoreProvider.overrideWithValue(stores.bookmarks),
         settingsStoreProvider.overrideWithValue(stores.settings),
+        savedEntityStoreProvider.overrideWithValue(stores.savedEntities),
         appVersionProvider.overrideWithValue(version),
         if (firebase) ...[
           notificationServiceProvider.overrideWithValue(
@@ -47,6 +51,19 @@ Future<void> main() async {
               const DebugAnalyticsService(),
             ]),
           ),
+          // Community features (COMMUNITY.md). Each stays hidden until it
+          // is switched on in the config/app document.
+          authRepositoryProvider.overrideWithValue(
+            FirebaseAuthRepository(
+              googleServerClientId: config.googleWebClientId,
+            ),
+          ),
+          communityApiProvider.overrideWithValue(
+            FirebaseCommunityApi(functionsRegion: config.functionsRegion),
+          ),
+          featureFlagSourceProvider.overrideWithValue(
+            FirestoreFeatureFlagSource(),
+          ),
         ],
       ],
       child: const AllBioHubApp(),
@@ -57,7 +74,14 @@ Future<void> main() async {
 /// On-device storage. If a box can't be opened (a damaged file, a full
 /// disk), the app still opens: a damaged cache is rebuilt, and settings or
 /// bookmarks fall back to memory for this session without being deleted.
-Future<({CacheStore cache, LocalStore bookmarks, LocalStore settings})>
+Future<
+  ({
+    CacheStore cache,
+    LocalStore bookmarks,
+    LocalStore settings,
+    LocalStore savedEntities,
+  })
+>
 _openStores() async {
   try {
     await Hive.initFlutter();
@@ -67,6 +91,7 @@ _openStores() async {
       cache: MemoryCacheStore(),
       bookmarks: MemoryLocalStore(),
       settings: MemoryLocalStore(),
+      savedEntities: MemoryLocalStore(),
     );
   }
 
@@ -90,6 +115,7 @@ _openStores() async {
     open(HiveCacheStore.boxName, rebuild: true),
     open('bookmarks'),
     open('settings'),
+    open('saved_entities'),
   ]);
   return (
     cache: boxes[0] == null
@@ -101,5 +127,8 @@ _openStores() async {
     settings: boxes[2] == null
         ? MemoryLocalStore()
         : HiveLocalStore(boxes[2]!) as LocalStore,
+    savedEntities: boxes[3] == null
+        ? MemoryLocalStore()
+        : HiveLocalStore(boxes[3]!) as LocalStore,
   );
 }

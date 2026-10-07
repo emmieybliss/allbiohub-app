@@ -15,6 +15,9 @@ class AppConfig {
     this.firebaseApiKey = '',
     this.firebaseAppId = '',
     this.firebaseMessagingSenderId = '',
+    this.firebaseStorageBucket = '',
+    this.functionsRegion = 'europe-west1',
+    this.googleWebClientId = '',
   });
 
   factory AppConfig.fromEnvironment() {
@@ -46,6 +49,12 @@ class AppConfig {
       firebaseMessagingSenderId: String.fromEnvironment(
         'FIREBASE_MESSAGING_SENDER_ID',
       ),
+      firebaseStorageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
+      functionsRegion: String.fromEnvironment(
+        'FIREBASE_FUNCTIONS_REGION',
+        defaultValue: 'europe-west1',
+      ),
+      googleWebClientId: String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
     );
   }
 
@@ -70,6 +79,21 @@ class AppConfig {
   final String firebaseApiKey;
   final String firebaseAppId;
   final String firebaseMessagingSenderId;
+
+  /// Cloud Storage bucket for profile pictures and submission images.
+  /// Defaults to the project's standard bucket.
+  final String firebaseStorageBucket;
+
+  /// Region of the community Cloud Functions (firebase/functions).
+  final String functionsRegion;
+
+  /// OAuth "Web client" id used for Google sign-in. Empty hides the
+  /// Google button.
+  final String googleWebClientId;
+
+  String get storageBucket => firebaseStorageBucket.isNotEmpty
+      ? firebaseStorageBucket
+      : '$firebaseProjectId.firebasestorage.app';
 
   String get wordpressApiBase => '$siteUrl/wp-json/wp/v2';
   String get startupApiBase => '$siteUrl$startupApiPath';
