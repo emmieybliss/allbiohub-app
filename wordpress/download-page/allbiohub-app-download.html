@@ -1,0 +1,120 @@
+<!-- AllBioHub app download section. Paste into a WordPress "Custom HTML"
+     block (see README.md next to this file). Everything is scoped to
+     .abh-dl so it can't change the rest of the site. Works without the
+     script; the script only adds the version, file sizes and phone hints. -->
+<style>
+.abh-dl{--abh-purple:#4F3DAD;--abh-orange:#EA5F17;--abh-ink:#0F1722;--abh-muted:#5B6270;--abh-soft:#F3F0FB;--abh-line:#E4E0EE;
+  max-width:640px;margin:0 auto;color:var(--abh-ink);font-family:inherit;line-height:1.55}
+.abh-dl *{box-sizing:border-box}
+.abh-dl h2{font-size:1.6em;margin:0 0 .3em;line-height:1.2}
+.abh-dl h3{font-size:1.15em;margin:1.6em 0 .6em}
+.abh-dl p{margin:0 0 .8em}
+.abh-dl .abh-lead{color:var(--abh-muted)}
+.abh-dl .abh-btn{display:block;text-align:center;background:var(--abh-purple);color:#fff!important;text-decoration:none!important;
+  font-weight:700;font-size:1.1em;padding:16px 20px;border-radius:14px;margin:18px 0 8px}
+.abh-dl .abh-btn:hover,.abh-dl .abh-btn:focus{filter:brightness(1.1)}
+.abh-dl .abh-meta{font-size:.9em;color:var(--abh-muted);text-align:center;margin:0 0 6px}
+.abh-dl .abh-alt{font-size:.9em;text-align:center}
+.abh-dl .abh-alt a{color:var(--abh-purple)}
+.abh-dl .abh-note{background:var(--abh-soft);border-left:4px solid var(--abh-orange);border-radius:10px;padding:14px 16px;margin:18px 0}
+.abh-dl .abh-note p:last-child{margin:0}
+.abh-dl ol.abh-steps{list-style:none;counter-reset:abh;padding:0;margin:0}
+.abh-dl ol.abh-steps li{counter-increment:abh;position:relative;padding:0 0 14px 44px;margin:0}
+.abh-dl ol.abh-steps li::before{content:counter(abh);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;
+  background:var(--abh-purple);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.95em}
+.abh-dl .abh-say{font-weight:700}
+.abh-dl details{border:1px solid var(--abh-line);border-radius:10px;padding:10px 14px;margin:0 0 8px}
+.abh-dl summary{cursor:pointer;font-weight:600}
+.abh-dl details p{margin:.6em 0 0}
+.abh-dl [hidden]{display:none!important}
+</style>
+
+<div class="abh-dl" id="abh-dl">
+  <h2>Get the AllBioHub app</h2>
+  <p class="abh-lead">Stories and the African startup directory, in a fast app for Android. Free, no account needed.</p>
+
+  <div class="abh-note" id="abh-not-android" hidden>
+    <p id="abh-ios-msg" hidden><strong>On iPhone?</strong> The app is Android only for now. You can keep reading on allbiohub.com.</p>
+    <p id="abh-desktop-msg" hidden><strong>On a computer?</strong> Open this page on your Android phone to install the app.</p>
+  </div>
+
+  <a class="abh-btn" id="abh-main" href="https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub.apk">Download for Android</a>
+  <p class="abh-meta" id="abh-meta">Works on almost every Android phone</p>
+  <p class="abh-alt">Slow or costly data? <a id="abh-small" href="https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub-arm64.apk">Get the smaller download</a> for phones from 2019 or newer.</p>
+
+  <div class="abh-note">
+    <p><strong>Your phone will show a warning. That's normal.</strong> Android warns about every app downloaded from a website instead of Google Play. The AllBioHub app comes straight from us, is signed by AllBioHub, and doesn't ask for your contacts, photos or location.</p>
+  </div>
+
+  <h3>How to install (about a minute)</h3>
+  <ol class="abh-steps">
+    <li>Tap <strong>Download for Android</strong> above. If Chrome says <span class="abh-say">"This type of file can harm your device"</span>, tap <strong>Download anyway</strong>.</li>
+    <li>When the download finishes, tap <strong>Open</strong>. (Missed it? Open your <strong>Files</strong> or <strong>Downloads</strong> app and tap <strong>allbiohub</strong>.)</li>
+    <li>If your phone says <span class="abh-say">"For your security, your phone is not allowed to install unknown apps from this source"</span>, tap <strong>Settings</strong>, switch on <strong>Allow from this source</strong>, then tap back.</li>
+    <li>Tap <strong>Install</strong>. If Google Play Protect asks to scan the app, tap <strong>Scan app</strong>, and when it's done, tap <strong>Install</strong>.</li>
+    <li>Tap <strong>Open</strong>. That's it. You'll find AllBioHub with your other apps.</li>
+  </ol>
+
+  <h3>Questions</h3>
+  <details>
+    <summary>Is it safe?</summary>
+    <p>Yes. The warnings appear for every app installed from outside Google Play, not because of anything in AllBioHub. The app only needs internet access (and asks before sending notifications, if you turn them on). Every version is signed with the same AllBioHub key, so your phone will only accept updates that really come from us. We're also bringing the app to Google Play.</p>
+  </details>
+  <details>
+    <summary>It says "App not installed"</summary>
+    <p>If you used the smaller download, your phone may be an older 32-bit model: use the main <strong>Download for Android</strong> button instead. Also check you have some free storage space, and that the download finished completely (try downloading it again on Wi-Fi).</p>
+  </details>
+  <details>
+    <summary>Samsung, Xiaomi, Tecno, Infinix or itel phone?</summary>
+    <p>The steps are the same, but the setting in step 3 may be called <strong>Install unknown apps</strong> or <strong>Unknown sources</strong>. If the phone opens its own security check, let it finish and tap <strong>Install</strong> or <strong>Continue</strong>.</p>
+  </details>
+  <details>
+    <summary>How do I update?</summary>
+    <p>Download and install the newest version from this page the same way. It installs over the old one and keeps your saved stories and settings.</p>
+  </details>
+  <details>
+    <summary>Can I check the file is genuine?</summary>
+    <p>Each release lists the SHA-256 checksum of every file in <a href="https://github.com/emmieybliss/allbiohub-app/releases/latest">SHA256SUMS.txt</a>.</p>
+  </details>
+</div>
+
+<script>
+(function () {
+  var ua = navigator.userAgent || "";
+  var root = document.getElementById("abh-dl");
+  if (!root) return;
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!isAndroid) {
+    document.getElementById("abh-not-android").hidden = false;
+    document.getElementById(isIOS ? "abh-ios-msg" : "abh-desktop-msg").hidden = false;
+  }
+  // Version and sizes from the public GitHub release. If this fails, the
+  // page still works with the default text.
+  if (!window.fetch) return;
+  fetch("https://api.github.com/repos/emmieybliss/allbiohub-app/releases/latest", {
+    headers: { Accept: "application/vnd.github+json" }
+  })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (release) {
+      if (!release || !release.assets) return;
+      var mb = function (name) {
+        for (var i = 0; i < release.assets.length; i++) {
+          if (release.assets[i].name === name) return Math.round(release.assets[i].size / 1048576);
+        }
+        return null;
+      };
+      var main = mb("allbiohub.apk");
+      var small = mb("allbiohub-arm64.apk");
+      var version = (release.tag_name || "").replace(/^v/, "");
+      if (main) {
+        document.getElementById("abh-meta").textContent =
+          (version ? "Version " + version + " · " : "") + main + " MB · works on almost every Android phone";
+      }
+      var smallLink = document.getElementById("abh-small");
+      if (small) smallLink.textContent = "Get the smaller download (" + small + " MB)";
+      else smallLink.parentNode.hidden = true;
+    })
+    .catch(function () {});
+})();
+</script>

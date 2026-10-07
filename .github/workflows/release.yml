@@ -2,9 +2,12 @@ name: Release
 
 # Builds the signed APK and Play Store bundle. Run it from GitHub:
 # Actions → Release → Run workflow. Needs the secrets listed in RELEASE.md.
-# With "Publish the APK" ticked (the default), the APK is also attached to a
-# public GitHub Release, so this link always serves the newest version:
+# With "Publish the APK" ticked (the default), the APKs are also attached to a
+# public GitHub Release, so these links always serve the newest version:
 # https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub.apk
+#   (every Android phone: 32- and 64-bit ARM)
+# https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub-arm64.apk
+#   (smaller, for 64-bit phones: almost every phone sold since 2019)
 on:
   workflow_dispatch:
     inputs:
@@ -69,17 +72,31 @@ jobs:
           keyPassword=${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}
           PROPS
 
-      - run: flutter build apk --release --dart-define-from-file=.env.ci
+      # Phones are ARM; leaving out x86_64 (emulators, a few Chromebooks)
+      # makes the download roughly a third smaller. Each APK is a separate
+      # build, not --split-per-abi, so they all keep pubspec's versionCode
+      # and phones can move between them and to Google Play as updates.
+      - name: Build the APKs
+        run: |
+          mkdir -p "$RUNNER_TEMP/apk"
+          flutter build apk --release --target-platform android-arm,android-arm64 --dart-define-from-file=.env.ci
+          cp build/app/outputs/flutter-apk/app-release.apk "$RUNNER_TEMP/apk/allbiohub.apk"
+          flutter build apk --release --target-platform android-arm64 --dart-define-from-file=.env.ci
+          cp build/app/outputs/flutter-apk/app-release.apk "$RUNNER_TEMP/apk/allbiohub-arm64.apk"
+          cd "$RUNNER_TEMP/apk"
+          sha256sum allbiohub.apk allbiohub-arm64.apk > SHA256SUMS.txt
       - run: flutter build appbundle --release --dart-define-from-file=.env.ci
 
       - name: Check the signature
         run: |
           apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner"
-          cert=$("$apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk)
-          if echo "$cert" | grep -q "CN=Android Debug"; then
-            echo "::error::The APK was signed with the debug key. Check the release key secrets."
-            exit 1
-          fi
+          for apk in "$RUNNER_TEMP"/apk/*.apk; do
+            cert=$("$apksigner" verify --print-certs "$apk")
+            if echo "$cert" | grep -q "CN=Android Debug"; then
+              echo "::error::$(basename "$apk") was signed with the debug key. Check the release key secrets."
+              exit 1
+            fi
+          done
           {
             echo "## Signed release"
             echo
@@ -90,12 +107,19 @@ jobs:
             echo '```'
             echo "$cert" | grep -E 'SHA-1 digest|SHA-256 digest'
             echo '```'
+            echo
+            echo "APK sizes and SHA-256 checksums:"
+            echo
+            echo '```'
+            ls -lh "$RUNNER_TEMP"/apk/*.apk | awk '{print $5, $NF}' | sed "s|$RUNNER_TEMP/apk/||"
+            cat "$RUNNER_TEMP/apk/SHA256SUMS.txt"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
           name: allbiohub-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ runner.temp }}/apk/
           retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
@@ -110,17 +134,22 @@ jobs:
         run: |
           version=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
           tag="v${version%%+*}"
-          cp build/app/outputs/flutter-apk/app-release.apk "$RUNNER_TEMP/allbiohub.apk"
+          files=("$RUNNER_TEMP/apk/allbiohub.apk" "$RUNNER_TEMP/apk/allbiohub-arm64.apk" "$RUNNER_TEMP/apk/SHA256SUMS.txt")
+          notes="$RUNNER_TEMP/notes.md"
+          sed "s/{{VERSION}}/$version/" tool/ci/release_notes.md > "$notes"
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "$RUNNER_TEMP/allbiohub.apk" --clobber
+            gh release upload "$tag" "${files[@]}" --clobber
+            gh release edit "$tag" --notes-file "$notes"
           else
-            gh release create "$tag" "$RUNNER_TEMP/allbiohub.apk" \
+            gh release create "$tag" "${files[@]}" \
               --target "$GITHUB_SHA" --title "AllBioHub $tag" --latest \
-              --notes "AllBioHub for Android, version $version. Download allbiohub.apk below and open it on your phone to install."
+              --notes-file "$notes"
           fi
           {
             echo
-            echo "Download: https://github.com/$GITHUB_REPOSITORY/releases/latest/download/allbiohub.apk"
+            echo "Downloads:"
+            echo "- https://github.com/$GITHUB_REPOSITORY/releases/latest/download/allbiohub.apk"
+            echo "- https://github.com/$GITHUB_REPOSITORY/releases/latest/download/allbiohub-arm64.apk"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove the key from the runner
