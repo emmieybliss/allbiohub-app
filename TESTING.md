@@ -30,6 +30,18 @@ storage.
 | Accessibility | Light and dark text colours meet WCAG AA contrast (`theme_test`) |
 | User journeys | Whole app with its router: first launch and onboarding, open a story, save it and find it in Saved, allbiohub.com links, every tab, dark mode, search; phone and small-phone screens at the largest text size without overflow (`journeys_test`) |
 
+## Community backend
+
+```bash
+cd firebase/functions
+npm ci && npm run lint && npm test       # validation rules (usernames, slugs, replies)
+npm run build && npm run test:emulator   # security rules and functions on the Firebase emulators
+```
+
+The emulator run needs Java 21 and `npm install -g firebase-tools`. App-side
+community tests use the in-memory backend in `test/helpers/fake_community.dart`
+(`test/unit/community_test.dart`, `test/widget/community_test.dart`).
+
 ## WordPress add-on
 
 ```bash

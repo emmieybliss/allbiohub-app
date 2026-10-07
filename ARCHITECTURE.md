@@ -35,6 +35,7 @@ lib/
     models/                 Domain models
     repositories/           Data access per domain
     services/               Analytics, notifications, sharing
+    community/              Community models, API (Firebase / unavailable), feature switches, providers
     routing/                Routes, GoRouter config, deep-link parser
     theme/                  Light/dark themes, BrandColors, typography
     utils/                  HTML-to-text, reading time, dates
@@ -44,6 +45,8 @@ lib/
     articles/               Reader, native HTML renderer, category/tag feeds
     startups/               Startups home, directory + filters, profile
     bookmarks/ profile/
+    account/                Sign-in, username, edit profile, account settings
+    community/              Reactions, comments, polls, follows, founders, submissions, notification center
   shared/
     widgets/                Cards, images, skeletons, empty/error/offline states
     paged_list.dart         Generic infinite-list notifier
@@ -51,6 +54,12 @@ lib/
 ```
 
 ## Key decisions
+
+- **Community on Firebase, behind switches.** Reads go straight to Firestore
+  under read-only security rules; every write is a validated Cloud Function
+  in `firebase/functions`. Each feature is switched on remotely from
+  `config/app`, so the app ships safely before setup. Details in
+  [COMMUNITY.md](COMMUNITY.md).
 
 **State: Riverpod 3.** `FutureProvider` for read-only data,
 `AsyncNotifier`/`Notifier` where screens trigger actions (refresh, bookmark,
