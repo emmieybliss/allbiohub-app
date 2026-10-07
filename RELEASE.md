@@ -84,14 +84,27 @@ an update with a lower or equal code).
 On GitHub: **Actions → Release → Run workflow → Run workflow**. When it
 finishes (about 15 minutes), open the run and download:
 
-- `allbiohub-release-apk`: the APK for the download page,
+- `allbiohub-release-apk`: the APKs for the download page, with
+  `SHA256SUMS.txt`,
 - `allbiohub-release-aab`: the bundle for Google Play.
 
-It also attaches the APK to a public GitHub Release named after the version
-(untick "Publish the APK" to skip that). Link the website's download button
-to this address; it always serves the newest published APK:
+There are two APKs, both signed with the release key and with the same
+version, so a phone can switch between them as a normal update:
+
+- `allbiohub.apk`: 32- and 64-bit ARM, for every phone. The default.
+- `allbiohub-arm64.apk`: 64-bit only, roughly half the size, for almost
+  every phone sold since 2019.
+
+It also attaches both, the checksums and install steps to a public GitHub
+Release named after the version (untick "Publish the APK" to skip that).
+These addresses always serve the newest published APKs:
 
     https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub.apk
+    https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub-arm64.apk
+
+The ready-made download page in `wordpress/download-page/` links to both
+and walks people through the install warnings. PLAY_STORE.md explains the
+warnings and how Google Play removes them.
 
 Raise `version:` in `pubspec.yaml` for each new release so phones install it
 as an update.
@@ -111,9 +124,11 @@ notification (README → Sending a notification).
 
 ## 6. Publish
 
-Upload the APK to the download page with its version and SHA-256
+The Release run publishes the APKs with their SHA-256 checksums
+(`SHA256SUMS.txt`), so people can check them; the download page links
+there. Building locally instead, publish the checksum yourself
 (`sha256sum app-release.apk`, or `certutil -hashfile app-release.apk SHA256`
-on Windows) so people can check it. For App Links, make sure
+on Windows). For App Links, make sure
 `/.well-known/assetlinks.json` has the release key fingerprint
 (README → Deep linking).
 
@@ -146,11 +161,15 @@ Needs Flutter installed (README → Setup).
    keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
    ```
 
-   Output: `build/app/outputs/flutter-apk/app-release.apk`. For smaller
-   per-device downloads, add `--split-per-abi` and offer `arm64-v8a` as the
-   default download.
+   Output: `build/app/outputs/flutter-apk/app-release.apk`. For a smaller
+   APK, add `--target-platform android-arm,android-arm64` (every phone) or
+   `--target-platform android-arm64` (64-bit phones). Avoid
+   `--split-per-abi`: it raises each APK's version code (to 2001 and so
+   on), so phones then refuse later updates and the Google Play version.
 
 ## Moving to Google Play
+
+Step-by-step in PLAY_STORE.md, including what you need to sign up.
 
 Upload the `allbiohub-release-aab` from the Release run (or, building
 locally, `flutter build appbundle --release --dart-define-from-file=.env.prod`

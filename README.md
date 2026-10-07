@@ -207,10 +207,11 @@ turned on) notification permissions, no advertising id, HTTPS-only
 network config, no background work, backup rules that skip the API cache.
 The privacy policy is live at https://allbiohub.com/privacy-policy/ and
 linked from Profile → Privacy; use the same link in the Play Console.
-Still needed: the release key (RELEASE.md), store listing text and
-screenshots, the content rating questionnaire, and the Data safety form (the
-Privacy text in Profile summarizes what the app does). The Release workflow
-builds the AAB.
+The 512 px icon and the 1024 x 500 feature graphic are in
+`assets/branding/`, and the Release workflow builds the AAB. Still needed:
+a Play developer account, store listing text and screenshots, the content
+rating questionnaire, and the Data safety form; PLAY_STORE.md walks through
+each, and explains why phones warn about the website APK until then.
 
 ## Brand assets
 
@@ -218,6 +219,8 @@ The launcher icon (adaptive and themed), splash images, Play Store icon and
 in-app logo all come from the official AllBioHub Media logo in
 `tool/brand/allbiohub_media_logo.jpg`. If the logo changes, replace that
 file and run `python3 tool/brand/make_icons.py` (needs Pillow and numpy).
+`python3 tool/brand/make_feature_graphic.py` rebuilds the Google Play
+feature graphic.
 
 ## Known limitations
 
