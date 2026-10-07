@@ -63,6 +63,7 @@ class _SubmissionFormState extends ConsumerState<_SubmissionForm> {
       final message = await widget.submit();
       if (!mounted) return;
       ref.invalidate(mySubmissionsProvider);
+      setState(() => _busy = false);
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(

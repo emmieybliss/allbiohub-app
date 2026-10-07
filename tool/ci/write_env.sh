@@ -6,10 +6,12 @@ set -euo pipefail
 
 out="$1"
 cp .env.example "$out"
-for key in FIREBASE_PROJECT_ID FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_MESSAGING_SENDER_ID; do
+for key in FIREBASE_PROJECT_ID FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_MESSAGING_SENDER_ID \
+  FIREBASE_STORAGE_BUCKET GOOGLE_WEB_CLIENT_ID; do
   value="${!key:-}"
   if [ -n "$value" ]; then
-    # Values are ids and keys made of [A-Za-z0-9:_-], so no escaping needed.
+    # Values are ids, keys and host names made of [A-Za-z0-9.:_-], so no
+    # escaping needed.
     sed -i "s|^$key=.*|$key=$value|" "$out"
   fi
 done

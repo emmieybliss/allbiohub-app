@@ -68,7 +68,7 @@ async function push(uid: string, input: NotificationInput): Promise<void> {
       tokens,
       notification: { title: input.title, body: input.body },
       data: { url: input.url, type: input.type },
-      android: { priority: "normal", notification: { channelId: "community" } },
+      android: { priority: "normal" },
     });
     const stale = result.responses
       .map((r, i) => ({ r, doc: devices.docs[i] }))

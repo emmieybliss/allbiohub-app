@@ -120,8 +120,9 @@ class FakeCommunity implements CommunityApi {
 
   String get _uid {
     final user = auth?.currentUser;
-    if (user == null)
+    if (user == null) {
       throw const CommunityException(CommunityErrorKind.signInRequired);
+    }
     return user.uid;
   }
 
@@ -310,8 +311,9 @@ class FakeCommunity implements CommunityApi {
 
   CommentAuthor get _author {
     final p = profiles[_uid];
-    if (p == null)
+    if (p == null) {
       throw const CommunityException(CommunityErrorKind.profileRequired);
+    }
     return CommentAuthor(
       uid: p.uid,
       username: p.username,

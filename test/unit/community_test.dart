@@ -183,7 +183,10 @@ void main() {
           'Me too',
           'And me',
         ]);
-        expect(api.storedComments.where((x) => x.rootId == top.id), hasLength(3));
+        expect(
+          api.storedComments.where((x) => x.rootId == top.id),
+          hasLength(3),
+        );
       },
     );
 
