@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "base": {
+      "node": "22.22.0",
+      "env": {
+        "EXPO_PUBLIC_SITE_URL": "https://allbiohub.com",
+        "EXPO_PUBLIC_STARTUP_API_PATH": "/wp-json/allbiohub/v1"
+      }
+    },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": { "EXPO_PUBLIC_APP_ENV": "development" },
+      "android": { "buildType": "apk" }
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "channel": "preview",
+      "env": { "EXPO_PUBLIC_APP_ENV": "staging" },
+      "android": { "buildType": "apk" }
+    },
+    "production": {
+      "extends": "base",
+      "channel": "production",
+      "env": { "EXPO_PUBLIC_APP_ENV": "production" },
+      "android": { "buildType": "app-bundle", "credentialsSource": "local" }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

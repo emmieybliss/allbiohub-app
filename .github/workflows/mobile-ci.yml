@@ -1,0 +1,78 @@
+name: Expo app CI
+
+# Checks the Expo app in mobile/ on every change to it, and builds a test APK
+# (signed with the debug key) that can be installed to try the change.
+# Signed releases come from the "Release (Expo app)" workflow (mobile/RELEASE.md).
+on:
+  push:
+    branches: [main]
+    paths: ['mobile/**', '.github/workflows/mobile-*.yml']
+  pull_request:
+    paths: ['mobile/**', '.github/workflows/mobile-*.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --ci
+
+  test-apk:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_PUBLIC_APP_ENV: staging
+      EXPO_PUBLIC_SITE_URL: https://allbiohub.com
+      EXPO_PUBLIC_STARTUP_API_PATH: /wp-json/allbiohub/v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - name: Firebase settings
+        run: node tool/write-google-services.mjs
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+      - run: npx expo prebuild --platform android --no-install
+      # 64-bit ARM only, to keep test builds quick.
+      - name: Build the test APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: allbiohub-expo-test-apk
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
