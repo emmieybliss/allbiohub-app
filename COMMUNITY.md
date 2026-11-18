@@ -42,7 +42,7 @@ and in the GitHub repository's settings. Do the steps in order.
    - **Google**: enable, choose a support email, save. Open Google again and
      copy the **Web client ID** (it ends in `.apps.googleusercontent.com`).
 5. **Add the app's fingerprints** (needed for Google sign-in). GitHub →
-   Actions → the latest **Release** run → summary → copy the two lines
+   Actions → the latest **Release (Expo app)** run → summary → copy the two lines
    `SHA-1 digest` and `SHA-256 digest`. Firebase → ⚙️ Project settings →
    Your apps → the Android app → **Add fingerprint**, once for each.
 6. **Add GitHub secrets.** GitHub → Settings → Secrets and variables →
@@ -79,7 +79,7 @@ lost: data stays and comes back when the feature is switched on.
 ## Architecture
 
 ```
- Flutter app ──reads──────────────▶ Cloud Firestore  (security rules: read-only,
+ Expo app ───reads──────────────▶ Cloud Firestore  (security rules: read-only,
      │                                    ▲            own data and public data)
      │                                    │ writes
      └──calls (signed in)──▶ Cloud Functions (validation, rate limits,
@@ -98,17 +98,24 @@ lost: data stays and comes back when the feature is switched on.
 - **Names come from the site.** Following a startup, founder or topic stores
   the name the server looked up on allbiohub.com, not what the app sent.
 - **Region:** `europe-west1` for Firestore, Storage and Functions.
-- **Code:** server in `firebase/functions/src`, rules in `firebase/*.rules`,
-  app in `lib/core/community` (models, API, providers, switches) and
-  `lib/features/community`, `lib/features/account` (screens).
-- **Builds without Firebase** (no `FIREBASE_*` settings) use
-  `UnavailableCommunityApi`: every feature is off and nothing pretends to
-  work.
+- **Code:** server in `firebase/functions/src`, rules in `firebase/*.rules`.
+  Expo app (the one being released): `mobile/src/features/community`
+  (models, API, Firebase adapter, store, hooks, components) and the screens
+  under `mobile/src/app` (`account/`, `me/`, `submit/`, `u/`, `founder/`,
+  `polls.tsx`, `article/[id]/comments.tsx`). The earlier Flutter app keeps
+  its copy in `lib/core/community` and `lib/features/community`,
+  `lib/features/account`; both apps read and write the same data, including
+  saved stories.
+- **Builds without Firebase** (no `google-services.json` for the Expo app,
+  no `FIREBASE_*` settings for Flutter) use the unavailable API: every
+  feature is off and nothing pretends to work.
 
-App settings (dart-define, see `.env.example`): `FIREBASE_*` as before, plus
-`FIREBASE_STORAGE_BUCKET` (optional), `FIREBASE_FUNCTIONS_REGION`
-(default `europe-west1`) and `GOOGLE_WEB_CLIENT_ID` (empty hides Google
-sign-in). Server settings (written by the deploy workflow): `ADMIN_EMAILS`,
+Expo app settings (`mobile/.env.example`): `EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION`
+(default `europe-west1`) and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (empty hides
+Google sign-in; the workflows fill it from the `GOOGLE_WEB_CLIENT_ID`
+secret). Flutter app settings (dart-define, see `.env.example`): `FIREBASE_*`
+as before, plus `FIREBASE_STORAGE_BUCKET` (optional),
+`FIREBASE_FUNCTIONS_REGION` and `GOOGLE_WEB_CLIENT_ID`. Server settings (written by the deploy workflow): `ADMIN_EMAILS`,
 `WORDPRESS_BASE_URL`, `STARTUP_API_PATH`.
 
 ## Feature switches
@@ -268,7 +275,8 @@ listed in the `COMMUNITY_ADMIN_EMAILS` secret can claim it.
 ## Testing
 
 ```bash
-flutter test                                  # app (fakes in test/helpers/fake_community.dart)
+cd mobile && npm test                         # Expo app (src/__tests__/community.test.ts, screens.test.tsx)
+flutter test                                  # Flutter app (fakes in test/helpers/fake_community.dart)
 cd firebase/functions
 npm ci && npm run lint && npm test            # server unit tests
 npm run build && npm run test:emulator        # rules + functions on the emulators (needs Java 21, firebase-tools)

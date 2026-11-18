@@ -5,8 +5,10 @@ import { useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { clearCache } from '@/api/cache';
 import { Row, TabHeader } from '@/components/Screen';
-import { AppText, Chip, Divider } from '@/components/ui';
+import { AppText, Button, Chip, Divider } from '@/components/ui';
 import { env, sitePage } from '@/config/env';
+import { CountBadge, JoinPrompt, ProfileHeader } from '@/features/community/components';
+import { useFeature, useSavedEntities, useSession } from '@/features/community/store';
 import { openLink } from '@/lib/links';
 import { useBookmarks } from '@/stores/bookmarks';
 import { TEXT_SIZES, type ThemeMode, usePreferences } from '@/stores/preferences';
@@ -37,6 +39,76 @@ function Item({ icon, title, subtitle, onPress, external, trailing }: { icon: Ic
   );
 }
 
+/** Account part of Profile: a join prompt for guests, otherwise the profile and the person's own lists. */
+function AccountSection() {
+  const accounts = useFeature('accounts');
+  const center = useFeature('notificationCenter');
+  const comments = useFeature('comments');
+  const polls = useFeature('polls');
+  const topics = useFeature('topicFollows');
+  const watchlist = useFeature('startupFollows');
+  const founders = useFeature('founderFollows');
+  const stories = useFeature('storySubmissions');
+  const startups = useFeature('startupSubmissions');
+  const claims = useFeature('startupClaims');
+  const following = topics || watchlist || founders;
+  const submissions = stories || startups || claims;
+  const ready = useSession((s) => s.ready);
+  const user = useSession((s) => s.user);
+  const profile = useSession((s) => s.profile);
+  const unread = useSession((s) => s.unread);
+  if (!accounts || !ready) return null;
+  if (!user) {
+    return (
+      <View style={{ padding: 16 }}>
+        <JoinPrompt title="Join the AllBioHub community" message="Sign in to comment, follow topics, startups and founders, vote in polls and keep your saved items on every phone." />
+      </View>
+    );
+  }
+  return (
+    <>
+      <View style={{ padding: 16, gap: 12 }}>
+        {profile ? (
+          <ProfileHeader profile={profile} isMe />
+        ) : profile === null ? (
+          <>
+            <AppText color="muted">{user.email ? `Signed in as ${user.email}` : 'Signed in'}</AppText>
+            <Button label="Choose a username" onPress={() => router.push('/account/username')} />
+          </>
+        ) : null}
+      </View>
+      {profile ? <Item icon="person-circle-outline" title="Edit profile" onPress={() => router.push('/me/edit')} /> : null}
+      {center ? (
+        <Row onPress={() => router.push('/me/notifications')} label="Notifications">
+          <ItemIcon icon="notifications-outline" />
+          <AppText variant="label" style={{ flex: 1 }}>
+            Notifications
+          </AppText>
+          <CountBadge count={unread} />
+          <ItemChevron />
+        </Row>
+      ) : null}
+      {following ? <Item icon="heart-outline" title="Following" onPress={() => router.push('/me/following')} /> : null}
+      {watchlist ? <Item icon="eye-outline" title="Startup watchlist" onPress={() => router.push('/me/watchlist')} /> : null}
+      {comments ? <Item icon="chatbubbles-outline" title="My comments" onPress={() => router.push('/me/comments')} /> : null}
+      {submissions ? <Item icon="document-text-outline" title="My submissions" onPress={() => router.push('/me/submissions')} /> : null}
+      {polls ? <Item icon="stats-chart-outline" title="Polls" onPress={() => router.push('/polls')} /> : null}
+      <Item icon="settings-outline" title="Account settings" onPress={() => router.push('/me/settings')} />
+      <Divider />
+    </>
+  );
+}
+
+function ItemIcon({ icon }: { icon: Icon }) {
+  const p = usePalette();
+  return <Ionicons name={icon} size={22} color={p.accentText} />;
+}
+
+function ItemChevron() {
+  const p = usePalette();
+  return <Ionicons name="chevron-forward" size={18} color={p.subtle} />;
+}
+
 const THEMES: [ThemeMode, string][] = [
   ['light', 'Light'],
   ['dark', 'Dark'],
@@ -46,7 +118,9 @@ const THEMES: [ThemeMode, string][] = [
 export default function ProfileScreen() {
   const p = usePalette();
   const queryClient = useQueryClient();
-  const savedCount = useBookmarks((s) => s.items.length);
+  const savedCount = useBookmarks((s) => s.items.length) + useSavedEntities((s) => s.items.length);
+  const storyForm = useFeature('storySubmissions');
+  const startupForm = useFeature('startupSubmissions');
   const prefs = usePreferences();
   const [cleared, setCleared] = useState(false);
   const textLabel = TEXT_SIZES.find((t) => t.key === prefs.textSize)?.label;
@@ -55,6 +129,7 @@ export default function ProfileScreen() {
     <View style={{ flex: 1, backgroundColor: p.background }}>
       <TabHeader title="Profile" />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <AccountSection />
         <Item icon="bookmark-outline" title="Saved" trailing={String(savedCount)} onPress={() => router.navigate('/saved')} />
         <Item
           icon="pricetags-outline"
@@ -82,8 +157,18 @@ export default function ProfileScreen() {
         </View>
         <Divider />
         <Item icon="information-circle-outline" title="About AllBioHub" onPress={() => router.push('/about')} />
-        <Item icon="create-outline" title="Submit a story" external onPress={() => openLink(sitePage('submit-a-story/'))} />
-        <Item icon="rocket-outline" title="Submit a startup" external onPress={() => openLink(sitePage('list-your-startup/'))} />
+        <Item
+          icon="create-outline"
+          title="Submit a story"
+          external={!storyForm}
+          onPress={() => (storyForm ? router.push('/submit/story') : openLink(sitePage('submit-a-story/')))}
+        />
+        <Item
+          icon="rocket-outline"
+          title="Submit a startup"
+          external={!startupForm}
+          onPress={() => (startupForm ? router.push('/submit/startup') : openLink(sitePage('list-your-startup/')))}
+        />
         {env.contactEmail ? <Item icon="mail-outline" title="Contact" subtitle={env.contactEmail} onPress={() => Linking.openURL(`mailto:${env.contactEmail}`)} /> : null}
         <Item icon="shield-checkmark-outline" title="Privacy" onPress={() => router.push('/privacy')} />
         {env.termsUrl ? <Item icon="document-text-outline" title="Terms and conditions" external onPress={() => openLink(env.termsUrl)} /> : null}

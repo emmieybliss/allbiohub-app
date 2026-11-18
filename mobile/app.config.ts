@@ -116,7 +116,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         android: { enableMinifyInReleaseBuilds: true, enableShrinkResourcesInReleaseBuilds: true },
       },
     ],
-    ...(HAS_FIREBASE ? ['@react-native-firebase/app', '@react-native-firebase/messaging'] : []),
+    // Profile pictures and submission images come from the photo picker only.
+    ['expo-image-picker', { cameraPermission: false, microphonePermission: false }],
+    // Community accounts (COMMUNITY.md) need Firebase too. Google sign-in reads
+    // its client from google-services.json and EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID.
+    ...(HAS_FIREBASE
+      ? ['@react-native-firebase/app', '@react-native-firebase/auth', '@react-native-firebase/messaging', '@react-native-google-signin/google-signin']
+      : []),
     // Signs release builds with the existing AllBioHub key when the
     // ALLBIOHUB_UPLOAD_* variables are set (GitHub Release workflow).
     './plugins/with-release-signing',

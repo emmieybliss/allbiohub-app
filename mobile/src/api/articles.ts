@@ -15,6 +15,8 @@ export type LatestOptions = {
   page?: number;
   perPage?: number;
   categoryId?: number;
+  /** Stories in any of these categories. */
+  categoryIds?: number[];
   tagId?: number;
   authorId?: number;
   excludeIds?: number[];
@@ -32,7 +34,7 @@ export async function fetchLatest(o: LatestOptions = {}): Promise<Page<Article>>
       query: {
         page,
         per_page: o.perPage ?? 10,
-        categories: o.categoryId,
+        categories: o.categoryIds?.length ? o.categoryIds.join(',') : o.categoryId,
         tags: o.tagId,
         author: o.authorId,
         exclude: o.excludeIds?.length ? o.excludeIds.join(',') : undefined,

@@ -97,3 +97,24 @@ export function listenForOpenedNotifications(onOpen: (url: string) => void): () 
     if (url) onOpen(url);
   });
 }
+
+/** This phone's push token, so personal notifications (replies, followed startups) can reach it. */
+export async function pushToken(): Promise<string | null> {
+  const m = load();
+  if (!m) return null;
+  try {
+    return await m.getToken(m.getMessaging());
+  } catch {
+    return null;
+  }
+}
+
+export function onPushTokenRefresh(cb: (token: string) => void): () => void {
+  const m = load();
+  if (!m) return () => {};
+  try {
+    return m.onTokenRefresh(m.getMessaging(), cb);
+  } catch {
+    return () => {};
+  }
+}

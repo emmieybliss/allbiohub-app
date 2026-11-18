@@ -22,6 +22,10 @@ export const env = {
   contactEmail: process.env.EXPO_PUBLIC_CONTACT_EMAIL ?? 'hello@allbiohub.com',
   /** True when the build included google-services.json (push notifications). */
   hasFirebase: Boolean(Constants.expoConfig?.extra?.hasFirebase),
+  /** Region of the community Cloud Functions (firebase/functions). */
+  functionsRegion: process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION || 'europe-west1',
+  /** OAuth "Web client" id from Firebase (Authentication, Google). Empty hides Google sign-in. */
+  googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
   version: Constants.expoConfig?.version ?? '',
 };
 

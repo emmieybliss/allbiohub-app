@@ -29,6 +29,8 @@ jobs:
       EXPO_PUBLIC_APP_ENV: production
       EXPO_PUBLIC_SITE_URL: https://allbiohub.com
       EXPO_PUBLIC_STARTUP_API_PATH: /wp-json/allbiohub/v1
+      # Community sign-in with Google (COMMUNITY.md). Empty hides the button.
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
     steps:
       - uses: actions/checkout@v4
 
