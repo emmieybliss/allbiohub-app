@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AllBioHub App API
  * Description:       Read-only startup directory API for the AllBioHub mobile app. Adds GET routes under /wp-json/allbiohub/v1/ and changes nothing else on the site.
- * Version:           1.0.2
+ * Version:           1.0.3
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            AllBioHub
@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'ALLBIOHUB_APP_API_VERSION', '1.0.2' );
+define( 'ALLBIOHUB_APP_API_VERSION', '1.0.3' );
 
 require_once __DIR__ . '/includes/class-mapper.php';
 require_once __DIR__ . '/includes/class-directory.php';
@@ -120,7 +120,19 @@ final class AllBioHub_App_API {
 			'startups' => $startups,
 			'map'      => $map,
 			'records'  => count( $records ),
+			'keys'     => array_values( array_filter( array_keys( $keys ), array( __CLASS__, 'public_key_name' ) ) ),
 		);
+	}
+
+	/**
+	 * Whether a stored field name may be listed in /status. Hides names that
+	 * hint at private data; values are never listed.
+	 *
+	 * @param string $key Normalised key.
+	 * @return bool
+	 */
+	public static function public_key_name( $key ) {
+		return ! preg_match( '/(^|_)(e?mail|email_address|phone|tel|password|pass|token|secret|api_key|key|notes?|payment|orders?|invoice|ip|ip_address|users?|user_id|author|edit_lock|edit_last|private)(_|$)/', (string) $key );
 	}
 
 	/**

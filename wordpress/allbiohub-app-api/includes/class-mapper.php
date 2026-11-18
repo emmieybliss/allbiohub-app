@@ -37,9 +37,9 @@ final class AllBioHub_App_API_Mapper {
 		'website'        => array( 'website', 'website_url', 'company_website', 'homepage', 'url' ),
 		'founders'       => array( 'founders', 'founder', 'founder_names', 'founder_name', 'founding_team' ),
 		'products'       => array( 'products', 'product', 'product_names' ),
-		'verified'       => array( 'verified', 'is_verified' ),
-		'claimed'        => array( 'claimed', 'is_claimed' ),
-		'featured'       => array( 'featured', 'is_featured' ),
+		'verified'       => array( 'verified', 'is_verified', 'verification', 'verification_status', 'verified_status' ),
+		'claimed'        => array( 'claimed', 'is_claimed', 'claim_status' ),
+		'featured'       => array( 'featured', 'is_featured', 'featured_listing', 'featured_status' ),
 		'verified_at'    => array( 'verified_at', 'verified_date', 'verification_date' ),
 	);
 
@@ -59,7 +59,7 @@ final class AllBioHub_App_API_Mapper {
 	const FACETS = array( 'industry', 'country', 'city', 'stage', 'funding', 'business_model', 'employees' );
 
 	/** Prefixes plugins commonly put in front of their field names. */
-	const PREFIXES = array( 'startup_', 'startups_', 'abs_', 'ab_', 'allbiohub_', 'sd_', 'wpcf_' );
+	const PREFIXES = array( 'abh_startup_', 'abh_', 'startup_', 'startups_', 'abs_', 'ab_', 'allbiohub_', 'sd_', 'wpcf_' );
 
 	/**
 	 * Normalises a source key: "_Startup-Industry" => "industry".
@@ -68,9 +68,17 @@ final class AllBioHub_App_API_Mapper {
 		$key = strtolower( trim( (string) $key ) );
 		$key = preg_replace( '/[^a-z0-9]+/', '_', $key );
 		$key = trim( $key, '_' );
-		foreach ( self::PREFIXES as $prefix ) {
-			if ( 0 === strpos( $key, $prefix ) && strlen( $key ) > strlen( $prefix ) ) {
-				$key = substr( $key, strlen( $prefix ) );
+		// Prefixes can be stacked ("abh_startup_industry"), so strip until none is left.
+		for ( $i = 0; $i < 3; $i++ ) {
+			$stripped = false;
+			foreach ( self::PREFIXES as $prefix ) {
+				if ( 0 === strpos( $key, $prefix ) && strlen( $key ) > strlen( $prefix ) ) {
+					$key      = substr( $key, strlen( $prefix ) );
+					$stripped = true;
+					break;
+				}
+			}
+			if ( ! $stripped ) {
 				break;
 			}
 		}
