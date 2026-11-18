@@ -113,7 +113,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-build-properties',
       {
         ios: { useFrameworks: 'static' },
-        android: { enableMinifyInReleaseBuilds: true, enableShrinkResourcesInReleaseBuilds: true },
+        android: {
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+          // React Native Firebase 27 (firebase-auth 25) is built with Kotlin
+          // 2.4; React Native's default 2.2 compiler can't read it.
+          kotlinVersion: '2.4.0',
+        },
       },
     ],
     // Profile pictures and submission images come from the photo picker only.
