@@ -36,9 +36,15 @@ allbiohub.com, and FCM topics `breaking`, `celebrity`, `technology`,
 `startups`, `money`, `biography`, `spotlight` (a push with `data.url` opens
 that page).
 
-Not ported yet: the community features (accounts, comments, reactions,
-follows, polls, submissions). They stay switched off in the Flutter app too,
-and come over in a follow-up.
+Community features (accounts, profiles, reactions, comments, follows, saved
+startups and founders, polls, notifications inbox, submissions and claims)
+use the same Firebase backend as the Flutter app and stay switched off until
+turned on in Firestore `config/app` (../COMMUNITY.md). Code is in
+`src/features/community` (models, API, Firebase adapter, store, hooks,
+components) with screens under `src/app/account`, `src/app/me`,
+`src/app/submit`, `src/app/u`, `src/app/founder`, `src/app/polls.tsx` and
+`src/app/article/[id]/comments.tsx`. Builds without `google-services.json`
+switch every community feature off.
 
 ## Run it
 

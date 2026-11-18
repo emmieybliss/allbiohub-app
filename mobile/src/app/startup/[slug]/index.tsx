@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { AppError } from '@/api/errors';
 import { isDirectoryUnavailable, refreshAll, useStartup, useStartupCoverage } from '@/api/queries';
@@ -8,7 +8,12 @@ import { RowCard } from '@/components/ArticleCards';
 import { StartupBadges, StartupLogo } from '@/components/StartupCards';
 import { AppText, Button, Divider, ErrorView, IconButton, SectionHeader, SkeletonBox, StateView } from '@/components/ui';
 import { sitePage } from '@/config/env';
+import { FollowButton, SaveEntityButton } from '@/features/community/components';
+import { slugify } from '@/features/community/models';
+import { useFeature } from '@/features/community/store';
 import { DirectoryUnavailable } from '@/features/startups/DirectoryUnavailable';
+import { imageUrlFor } from '@/lib/images';
+import { paths } from '@/lib/deepLinks';
 import { openLink } from '@/lib/links';
 import { shareStartup } from '@/lib/share';
 import { fullDate } from '@/lib/text';
@@ -35,6 +40,9 @@ export default function StartupProfileScreen() {
   const q = useStartup(slug);
   const s = q.data;
   const coverage = useStartupCoverage(s?.name);
+  const follows = useFeature('startupFollows');
+  const founderPages = useFeature('founderFollows');
+  const inAppClaim = useFeature('startupClaims');
 
   if (q.isPending) {
     return (
@@ -86,7 +94,21 @@ export default function StartupProfileScreen() {
       <Stack.Screen
         options={{
           title: '',
-          headerRight: () => <IconButton icon="share-social-outline" label="Share" onPress={() => shareStartup(s)} />,
+          headerRight: () => (
+            <View style={{ flexDirection: 'row' }}>
+              <SaveEntityButton
+                entity={{
+                  kind: 'startup',
+                  id: s.slug,
+                  title: s.name,
+                  subtitle: [s.industry, s.country].filter(Boolean).join(' · ') || undefined,
+                  image: s.logo ? imageUrlFor(s.logo, 200, true) : undefined,
+                  url: s.link,
+                }}
+              />
+              <IconButton icon="share-social-outline" label="Share" onPress={() => shareStartup(s)} />
+            </View>
+          ),
         }}
       />
       <ScrollView
@@ -108,6 +130,14 @@ export default function StartupProfileScreen() {
             {s.website ? <Button icon="globe-outline" label="Visit website" onPress={() => openLink(externalUrl(s.website!))} /> : null}
             <Button kind="outlined" icon="share-social-outline" label="Share" onPress={() => shareStartup(s)} />
           </View>
+          {follows ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <FollowButton target={{ kind: 'startup', id: s.slug, label: s.name }} />
+              <AppText variant="bodySmall" color="muted" style={{ flex: 1 }}>
+                Get alerts about new coverage and profile updates.
+              </AppText>
+            </View>
+          ) : null}
         </View>
 
         {s.description ? (
@@ -141,30 +171,46 @@ export default function StartupProfileScreen() {
         {s.founders.length ? (
           <View style={styles.section}>
             <AppText variant="title">Founders</AppText>
-            {s.founders.map((f) => (
-              <Pressable
-                key={f.name}
-                disabled={!f.url}
-                onPress={() => f.url && openLink(externalUrl(f.url))}
-                accessibilityRole={f.url ? 'link' : undefined}
-                style={[styles.founder, { backgroundColor: p.card, borderColor: p.border }]}
-              >
-                <View style={[styles.avatar, { backgroundColor: p.accentSoft }]}>
-                  <AppText variant="label" color="accent">
-                    {f.name[0]?.toUpperCase()}
-                  </AppText>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <AppText variant="label">{f.name}</AppText>
-                  {f.role ? (
-                    <AppText variant="caption" color="muted">
-                      {f.role}
+            {s.founders.map((f) => {
+              const founderSlug = founderPages ? slugify(f.name) : '';
+              const open = founderSlug
+                ? () =>
+                    router.push({
+                      pathname: '/founder/[slug]',
+                      params: { slug: founderSlug, name: f.name, role: f.role ?? '', startup: s.slug, startupName: s.name, startupLink: s.link, url: f.url ?? '' },
+                    })
+                : f.url
+                  ? () => openLink(externalUrl(f.url!))
+                  : undefined;
+              return (
+                <Pressable
+                  key={f.name}
+                  disabled={!open}
+                  onPress={open}
+                  accessibilityRole={open ? 'link' : undefined}
+                  style={[styles.founder, { backgroundColor: p.card, borderColor: p.border }]}
+                >
+                  <View style={[styles.avatar, { backgroundColor: p.accentSoft }]}>
+                    <AppText variant="label" color="accent">
+                      {f.name[0]?.toUpperCase()}
                     </AppText>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AppText variant="label">{f.name}</AppText>
+                    {f.role ? (
+                      <AppText variant="caption" color="muted">
+                        {f.role}
+                      </AppText>
+                    ) : null}
+                  </View>
+                  {founderSlug ? (
+                    <FollowButton dense target={{ kind: 'founder', id: founderSlug, label: f.name }} />
+                  ) : f.url ? (
+                    <Ionicons name="open-outline" size={16} color={p.subtle} />
                   ) : null}
-                </View>
-                {f.url ? <Ionicons name="open-outline" size={16} color={p.subtle} /> : null}
-              </Pressable>
-            ))}
+                </Pressable>
+              );
+            })}
           </View>
         ) : null}
 
@@ -190,7 +236,13 @@ export default function StartupProfileScreen() {
 
         <View style={[styles.section, { flexDirection: 'row', flexWrap: 'wrap', gap: 10 }]}>
           <Button kind="text" icon="create-outline" label="Suggest an update" onPress={() => openLink(sitePage('claim-startup/'))} />
-          {!s.claimed ? <Button kind="outlined" label="Claim this startup" onPress={() => openLink(sitePage('claim-startup/'))} /> : null}
+          {!s.claimed ? (
+            <Button
+              kind="outlined"
+              label="Claim this startup"
+              onPress={() => (inAppClaim ? router.push(paths.claimStartup(s.slug) as never) : openLink(sitePage('claim-startup/')))}
+            />
+          ) : null}
         </View>
 
         {coverage.data?.length ? (

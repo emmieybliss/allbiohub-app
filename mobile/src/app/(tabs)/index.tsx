@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, type NativeScrollEvent, RefreshControl, ScrollView, useWindowDimensions, View } from 'react-native';
@@ -5,7 +6,11 @@ import { flatten, refreshAll, useCategories, useCategoryPreview, useHomeFeed, us
 import { HeroCard, RailCard, RowCard } from '@/components/ArticleCards';
 import { TabHeader } from '@/components/Screen';
 import { StartupRailCard } from '@/components/StartupCards';
-import { Button, ErrorView, ListSkeleton, OfflineBanner, SectionHeader, SkeletonBox, StateView } from '@/components/ui';
+import { Button, ErrorView, IconButton, ListSkeleton, OfflineBanner, SectionHeader, SkeletonBox, StateView } from '@/components/ui';
+import { CountBadge } from '@/features/community/components';
+import { useActivePolls, useForYou, useQuestionOfTheDay } from '@/features/community/hooks';
+import { PollCard } from '@/features/community/PollCard';
+import { useFeature, useSession } from '@/features/community/store';
 import { paths } from '@/lib/deepLinks';
 import type { Term } from '@/models/types';
 import { usePalette } from '@/theme';
@@ -73,6 +78,58 @@ function StartupsSection() {
   );
 }
 
+/** Bell in the header: the account inbox when it is on, otherwise notification settings. */
+function Bell() {
+  const center = useFeature('notificationCenter');
+  const signedIn = useSession((s) => !!s.user);
+  const unread = useSession((s) => s.unread);
+  const inbox = center && signedIn;
+  return (
+    <View>
+      <IconButton
+        icon="notifications-outline"
+        label={inbox && unread ? `Notifications, ${unread} unread` : 'Notifications'}
+        onPress={() => router.push(inbox ? '/me/notifications' : '/notifications')}
+      />
+      {inbox && unread ? (
+        <View pointerEvents="none" style={{ position: 'absolute', top: 4, right: 2 }}>
+          <CountBadge count={unread} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** Question of the day, a "For you" rail and open polls. Each part shows only when its feature is on and it has content. */
+function CommunitySection({ qotd, polls, forYou }: { qotd: ReturnType<typeof useQuestionOfTheDay>; polls: ReturnType<typeof useActivePolls>; forYou: ReturnType<typeof useForYou> }) {
+  const pollsOn = useFeature('polls');
+  const open = (polls.data ?? []).filter((x) => x.id !== qotd.data?.id).length;
+  return (
+    <>
+      {qotd.data ? (
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          <PollCard poll={qotd.data} />
+        </View>
+      ) : null}
+      {forYou.data?.length ? (
+        <View>
+          <SectionHeader title="For you" subtitle="From topics you follow" />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 14 }}>
+            {forYou.data.map((a) => (
+              <RailCard key={a.id} article={a} />
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
+      {pollsOn && open > 0 ? (
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          <Button kind="outlined" icon="stats-chart-outline" label={`${open} open ${open === 1 ? 'poll' : 'polls'}`} onPress={() => router.push('/polls')} />
+        </View>
+      ) : null}
+    </>
+  );
+}
+
 export default function HomeScreen() {
   const p = usePalette();
   const feed = useHomeFeed();
@@ -81,9 +138,16 @@ export default function HomeScreen() {
   // Continues after the first page the top of Home already shows.
   const more = useStoryFeed('home-more', { skip: 1 }, showMore);
   const [refreshing, setRefreshing] = useState(false);
+  const qotd = useQuestionOfTheDay();
+  const polls = useActivePolls();
+  const forYou = useForYou();
+  const queryClient = useQueryClient();
 
   const onRefresh = async () => {
     setRefreshing(true);
+    // Community parts refresh alongside but never hold up or fail Home.
+    // Invalidating (not refetch) leaves switched-off features alone.
+    void queryClient.invalidateQueries({ queryKey: ['community'] }).catch(() => {});
     await refreshAll(feed.refetch, categories.refetch);
     setRefreshing(false);
   };
@@ -124,6 +188,7 @@ export default function HomeScreen() {
         {top.map((a) => (
           <RowCard key={a.id} article={a} />
         ))}
+        <CommunitySection qotd={qotd} polls={polls} forYou={forYou} />
         {cats.slice(0, 2).map((c) => (
           <CategoryRail key={c.id} category={c} />
         ))}
@@ -163,7 +228,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: p.background }}>
-      <TabHeader title="AllBioHub" logo />
+      <TabHeader title="AllBioHub" logo right={<Bell />} />
       <ScrollView
         contentContainerStyle={{ paddingBottom: 32, flexGrow: 1 }}
         onScroll={onScroll}

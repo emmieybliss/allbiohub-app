@@ -1,10 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { clearCache } from '@/api/cache';
 import StartupsScreen from '@/app/(tabs)/startups';
 import SavedScreen from '@/app/(tabs)/saved';
+import ProfileScreen from '@/app/(tabs)/profile';
+import { setCommunity, unavailableApi, unavailableAuth } from '@/features/community/api';
+import { useFlags, useSavedEntities, useSession } from '@/features/community/store';
 import { ArticleBody } from '@/features/articles/ArticleBody';
 import { fakeFetch } from '@/testing/fakeFetch';
 
@@ -21,7 +24,17 @@ function wrap(ui: ReactElement) {
 beforeEach(async () => {
   await clearCache();
   await AsyncStorage.clear();
+  setCommunity(null);
+  useFlags.setState({ on: [] });
+  useSavedEntities.setState({ items: [], pending: [], importedFor: [] });
+  useSession.setState({ ready: false, user: null, profile: undefined, unread: 0 });
 });
+
+/** A community backend that is "available" with the given switches on; every call fails, so nothing is faked. */
+function communityWith(...on: string[]) {
+  setCommunity({ auth: unavailableAuth, api: { ...unavailableApi, isAvailable: true } });
+  useFlags.setState({ on: on as never });
+}
 
 it('explains the startup directory is coming when the add-on is off', async () => {
   fakeFetch([[/allbiohub\/v1/, { status: 404, body: { code: 'rest_no_route' } }]]);
@@ -57,4 +70,37 @@ it('renders story HTML natively', async () => {
   expect(screen.getByText('Career')).toBeTruthy();
   expect(screen.getByText('Watch on YouTube')).toBeTruthy();
   expect(screen.getByRole('link', { name: 'X' })).toBeTruthy();
+});
+
+it('keeps Profile free of account items while the community is off', async () => {
+  await wrap(<ProfileScreen />);
+  expect(screen.getByText('Your topics')).toBeTruthy();
+  expect(screen.queryByText('Sign in or create an account')).toBeNull();
+});
+
+it('invites guests to join when accounts are switched on', async () => {
+  communityWith('accounts');
+  useSession.setState({ ready: true, user: null });
+  await wrap(<ProfileScreen />);
+  expect(screen.getByText('Join the AllBioHub community')).toBeTruthy();
+  expect(screen.getByText('Sign in or create an account')).toBeTruthy();
+});
+
+it('shows a signed-in person their lists for the features that are on', async () => {
+  communityWith('accounts', 'comments', 'polls');
+  useSession.setState({ ready: true, user: { uid: 'u1', email: 'ada@example.com', emailVerified: true } as never, profile: null });
+  await wrap(<ProfileScreen />);
+  expect(screen.getByText('Choose a username')).toBeTruthy();
+  expect(screen.getByText('My comments')).toBeTruthy();
+  expect(screen.getByText('Polls')).toBeTruthy();
+  expect(screen.queryByText('Startup watchlist')).toBeNull();
+});
+
+it('gives saved startups their own tab', async () => {
+  useSavedEntities.setState({ items: [{ kind: 'startup', id: 'paystack', title: 'Paystack', subtitle: 'Fintech · Nigeria' }] });
+  await wrap(<SavedScreen />);
+  expect(screen.getByText('Stories 0')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Startups 1'));
+  expect(screen.getByText('Paystack')).toBeTruthy();
+  expect(screen.getByText('Fintech · Nigeria')).toBeTruthy();
 });

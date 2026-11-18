@@ -10,7 +10,16 @@ type BookmarksState = {
   toggle: (article: Article) => boolean;
   remove: (id: number) => void;
   restore: (article: Article, index: number) => void;
+  /** Adds a story saved to the account on another phone. */
+  addFromAccount: (article: Article) => void;
 };
+
+/** Copies a change to the signed-in account; set by the community saved-items sync. */
+let mirror: ((article: Article, saved: boolean) => void) | null = null;
+
+export function setBookmarkMirror(fn: typeof mirror) {
+  mirror = fn;
+}
 
 function strip(a: Article): Article {
   const { contentHtml: _content, ...rest } = a;
@@ -25,13 +34,23 @@ export const useBookmarks = create<BookmarksState>()(
       toggle: (article) => {
         const saved = get().isSaved(article.id);
         set({ items: saved ? get().items.filter((a) => a.id !== article.id) : [strip(article), ...get().items] });
+        mirror?.(article, !saved);
         return !saved;
       },
-      remove: (id) => set({ items: get().items.filter((a) => a.id !== id) }),
+      remove: (id) => {
+        const article = get().items.find((a) => a.id === id);
+        set({ items: get().items.filter((a) => a.id !== id) });
+        if (article) mirror?.(article, false);
+      },
       restore: (article, index) => {
         const items = get().items.filter((a) => a.id !== article.id);
         items.splice(Math.max(0, Math.min(index, items.length)), 0, strip(article));
         set({ items });
+        mirror?.(article, true);
+      },
+      addFromAccount: (article) => {
+        if (get().isSaved(article.id)) return;
+        set({ items: [...get().items, strip(article)] });
       },
     }),
     {

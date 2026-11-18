@@ -10,8 +10,10 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/api/queries';
+import { OptionSheetHost } from '@/components/OptionSheet';
+import { openNotificationUrl } from '@/features/community/openUrl';
+import { startCommunity, useFlags, useSavedEntities } from '@/features/community/store';
 import { listenForOpenedNotifications, setupPush, syncTopics } from '@/features/push/notifications';
-import { openLink } from '@/lib/links';
 import { useBookmarks } from '@/stores/bookmarks';
 import { usePreferences } from '@/stores/preferences';
 import { fonts, usePalette } from '@/theme';
@@ -22,14 +24,16 @@ setupPush();
 export const unstable_settings = { anchor: '(tabs)' };
 
 function useHydrated() {
-  const [hydrated, setHydrated] = useState(() => usePreferences.persist.hasHydrated() && useBookmarks.persist.hasHydrated());
+  const stores = [usePreferences, useBookmarks, useFlags, useSavedEntities] as const;
+  const all = () => stores.every((s) => s.persist.hasHydrated());
+  const [hydrated, setHydrated] = useState(all);
   useEffect(() => {
-    const check = () => setHydrated(usePreferences.persist.hasHydrated() && useBookmarks.persist.hasHydrated());
-    const a = usePreferences.persist.onFinishHydration(check);
-    const b = useBookmarks.persist.onFinishHydration(check);
+    const check = () => setHydrated(all());
+    const offs = stores.map((s) => s.persist.onFinishHydration(check));
     // Hydration may have finished between the first render and this effect.
     queueMicrotask(check);
-    return () => (a(), b());
+    return () => offs.forEach((off) => off());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return hydrated;
 }
@@ -67,11 +71,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!ready) return;
-    return listenForOpenedNotifications((url) => {
-      // Personal notifications may carry an app path such as /saved.
-      if (url.startsWith('/')) router.push(url as never);
-      else openLink(url);
-    });
+    // Personal notifications may carry an app path such as /me/submissions.
+    return listenForOpenedNotifications(openNotificationUrl);
+  }, [ready]);
+
+  // Community features (COMMUNITY.md): switches, sign-in and the person's live data.
+  useEffect(() => {
+    if (!ready) return;
+    return startCommunity();
   }, [ready]);
 
   if (!ready) return null;
@@ -101,9 +108,11 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
               <Stack.Screen name="search" options={{ headerShown: false, animation: 'fade' }} />
-              <Stack.Screen name="article/[id]" options={{ title: '' }} />
+              <Stack.Screen name="article/[id]/index" options={{ title: '' }} />
               <Stack.Screen name="story/[slug]" options={{ title: '' }} />
+              <Stack.Screen name="account/sign-in" options={{ presentation: 'modal' }} />
             </Stack>
+            <OptionSheetHost />
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

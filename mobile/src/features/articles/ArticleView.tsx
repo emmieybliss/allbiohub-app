@@ -15,6 +15,7 @@ import { fullDate } from '@/lib/text';
 import type { Article } from '@/models/types';
 import { TEXT_SIZES, textScale, usePreferences } from '@/stores/preferences';
 import { usePalette } from '@/theme';
+import { ArticleCommunitySection } from '@/features/community/ArticleCommunity';
 import { ArticleBody } from './ArticleBody';
 
 function TextSizeSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
@@ -149,6 +150,7 @@ export function ArticleView({ query }: { query: UseQueryResult<Article> }) {
         <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
           <Button kind="outlined" icon="share-social-outline" label="Share this story" onPress={() => shareArticle(a)} />
         </View>
+        {a.contentHtml ? <ArticleCommunitySection article={a} /> : null}
         <Related article={a} />
       </ScrollView>
       <TextSizeSheet visible={sizeSheet} onClose={() => setSizeSheet(false)} />

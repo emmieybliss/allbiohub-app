@@ -43,6 +43,11 @@ export const paths = {
   author: (id: number) => `/author/${id}`,
   startup: (slug: string) => `/startup/${encodeURIComponent(slug)}`,
   directory: '/directory',
+  // Community (COMMUNITY.md); each page opens Home while its feature is off.
+  comments: (id: number) => `/article/${id}/comments`,
+  claimStartup: (slug: string) => `/startup/${encodeURIComponent(slug)}/claim`,
+  user: (uid: string) => `/u/${encodeURIComponent(uid)}`,
+  founder: (slug: string) => `/founder/${encodeURIComponent(slug)}`,
 } as const;
 
 export function appPathFor(raw: string, host: string): string | null {
