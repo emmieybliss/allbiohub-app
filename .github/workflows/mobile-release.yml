@@ -1,0 +1,168 @@
+name: Release (Expo app)
+
+# Builds the Expo app's signed APKs and Play Store bundle with the same
+# AllBioHub release key as the Flutter app, so it installs as an update.
+# Run it from GitHub: Actions → "Release (Expo app)" → Run workflow.
+#
+# "Publish the APK" is off by default: first install the APK from the run's
+# artifacts and check it. Ticking it attaches the APKs to a public GitHub
+# Release, which moves the website's download link to this version:
+# https://github.com/emmieybliss/allbiohub-app/releases/latest/download/allbiohub.apk
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the APK as the public download (moves the website link to this version)
+        type: boolean
+        default: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_PUBLIC_APP_ENV: production
+      EXPO_PUBLIC_SITE_URL: https://allbiohub.com
+      EXPO_PUBLIC_STARTUP_API_PATH: /wp-json/allbiohub/v1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the release key secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            echo "::error::Add the ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets first (RELEASE.md, step 2)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test -- --ci
+
+      - name: Firebase settings
+        run: node tool/write-google-services.mjs
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+
+      - name: Version
+        id: version
+        run: |
+          EXPO_OFFLINE=1 npx expo config --type public --json > "$RUNNER_TEMP/config.json"
+          echo "name=$(node -p "require('$RUNNER_TEMP/config.json').version")" >> "$GITHUB_OUTPUT"
+          echo "code=$(node -p "require('$RUNNER_TEMP/config.json').android.versionCode")" >> "$GITHUB_OUTPUT"
+
+      - run: npx expo prebuild --platform android --no-install
+
+      - name: Release key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/release.jks"
+
+      # Each APK is a separate build (not split per ABI), so they all keep the
+      # same versionCode and phones can move between them and to Google Play.
+      - name: Build the APKs and the Play Store bundle
+        working-directory: mobile/android
+        env:
+          ALLBIOHUB_UPLOAD_STORE_FILE: ${{ runner.temp }}/release.jks
+          ALLBIOHUB_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ALLBIOHUB_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ALLBIOHUB_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          out="$RUNNER_TEMP/apk"
+          mkdir -p "$out"
+          ./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$out/allbiohub.apk"
+          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$out/allbiohub-arm64.apk"
+          ./gradlew bundleRelease --no-daemon
+          cd "$out"
+          sha256sum allbiohub.apk allbiohub-arm64.apk > SHA256SUMS.txt
+
+      - name: Check the signature
+        run: |
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner"
+          for apk in "$RUNNER_TEMP"/apk/*.apk; do
+            cert=$("$apksigner" verify --print-certs "$apk")
+            if echo "$cert" | grep -q "CN=Android Debug"; then
+              echo "::error::$(basename "$apk") was signed with the debug key. Check the release key secrets."
+              exit 1
+            fi
+          done
+          {
+            echo "## Signed release (Expo app)"
+            echo
+            echo "Version: ${{ steps.version.outputs.name }} (versionCode ${{ steps.version.outputs.code }})"
+            echo
+            echo "Release key fingerprints (must match the Flutter releases):"
+            echo
+            echo '```'
+            echo "$cert" | grep -E 'SHA-1 digest|SHA-256 digest'
+            echo '```'
+            echo
+            echo '```'
+            ls -lh "$RUNNER_TEMP"/apk/*.apk | awk '{print $5, $NF}' | sed "s|$RUNNER_TEMP/apk/||"
+            cat "$RUNNER_TEMP/apk/SHA256SUMS.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: allbiohub-expo-release-apk
+          path: ${{ runner.temp }}/apk/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: allbiohub-expo-release-aab
+          path: mobile/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Publish the APK
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.version.outputs.name }}"
+          tag="v$version"
+          files=("$RUNNER_TEMP/apk/allbiohub.apk" "$RUNNER_TEMP/apk/allbiohub-arm64.apk" "$RUNNER_TEMP/apk/SHA256SUMS.txt")
+          notes="$RUNNER_TEMP/notes.md"
+          sed "s/{{VERSION}}/$version/" tool/release_notes.md > "$notes"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "${files[@]}" --clobber
+            gh release edit "$tag" --notes-file "$notes"
+          else
+            gh release create "$tag" "${files[@]}" \
+              --target "$GITHUB_SHA" --title "AllBioHub $tag" --latest \
+              --notes-file "$notes"
+          fi
+          {
+            echo
+            echo "Downloads:"
+            echo "- https://github.com/$GITHUB_REPOSITORY/releases/latest/download/allbiohub.apk"
+            echo "- https://github.com/$GITHUB_REPOSITORY/releases/latest/download/allbiohub-arm64.apk"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the key from the runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

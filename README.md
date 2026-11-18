@@ -1,5 +1,9 @@
 # AllBioHub
 
+> **Expo rebuild in progress (November 2026).** The app is being rebuilt with
+> Expo in [`mobile/`](mobile/README.md). Until it has been tested and
+> published, the Flutter app below is still the released version.
+
 The AllBioHub Android app: stories from [allbiohub.com](https://allbiohub.com)
 and the African startup directory, in a native Flutter app (no WebView).
 
