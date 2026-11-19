@@ -80,6 +80,8 @@ final class AllBioHub_App_API_Rest {
 				'featured' => $flagged( 'featured' ),
 				'verified' => $flagged( 'verified' ),
 				'fields'   => $built ? array_keys( array_filter( $built['map'] ) ) : array(),
+				// Names only, never values: lets a field the app misses be added remotely.
+				'keys'     => $built ? $built['keys'] : array(),
 			)
 		);
 		$response->header( 'Cache-Control', 'no-store' );

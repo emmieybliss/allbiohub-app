@@ -35,6 +35,9 @@ use AllBioHub_App_API_Mapper as Mapper;
 check( 'prefix and case removed', 'industry', Mapper::normalize_key( '_Startup-Industry' ) );
 check( 'company_stage kept', 'company_stage', Mapper::normalize_key( 'company_stage' ) );
 check( 'bare prefix kept', 'startup', Mapper::normalize_key( 'startup_' ) );
+check( 'abh prefix removed', 'industry', Mapper::normalize_key( '_abh_industry' ) );
+check( 'stacked prefixes removed', 'country', Mapper::normalize_key( 'abh_startup_country' ) );
+check( 'abh verification status maps to verified', 'verification_status', Mapper::guess_map( array( 'verification_status' ) )['verified'] );
 
 $fields = Mapper::normalize_fields(
 	array(
