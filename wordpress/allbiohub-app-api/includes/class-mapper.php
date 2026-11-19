@@ -205,9 +205,9 @@ final class AllBioHub_App_API_Mapper {
 			'social'         => (object) $social,
 			'founders'       => self::founders( $get( 'founders' ) ),
 			'products'       => self::values( $get( 'products' ) ),
-			'verified'       => self::boolean( $get( 'verified' ) ),
-			'claimed'        => self::boolean( $get( 'claimed' ) ),
-			'featured'       => self::boolean( $get( 'featured' ) ),
+			'verified'       => self::flag( isset( $record['fields'] ) ? (array) $record['fields'] : array(), 'verified', 'verified_until' ),
+			'claimed'        => self::flag( isset( $record['fields'] ) ? (array) $record['fields'] : array(), 'claimed' ),
+			'featured'       => self::flag( isset( $record['fields'] ) ? (array) $record['fields'] : array(), 'featured', 'featured_until' ),
 			'created_at'     => self::date( isset( $record['created_at'] ) ? $record['created_at'] : null ),
 			'updated_at'     => self::date( isset( $record['updated_at'] ) ? $record['updated_at'] : null ),
 			'verified_at'    => self::date( $get( 'verified_at' ) ),
@@ -311,6 +311,46 @@ final class AllBioHub_App_API_Mapper {
 			return (int) $m[1];
 		}
 		return null;
+	}
+
+	/** Values of a "…_status" field that mean the flag is on. */
+	const ON_STATUSES = array( 'active', 'approved', 'paid', 'live', 'running', 'verified', 'claimed', 'featured' );
+
+	/**
+	 * A yes/no flag read from every field that can hold it (sites often keep
+	 * both "featured" and "featured_status"), and switched off once its end
+	 * date ("featured_until") has passed.
+	 *
+	 * @param array       $fields Normalised fields.
+	 * @param string      $flag   verified, claimed or featured.
+	 * @param string|null $until  Field holding the end date, if any.
+	 * @return bool
+	 */
+	public static function flag( array $fields, $flag, $until = null ) {
+		$on = false;
+		foreach ( self::FIELDS[ $flag ] as $key ) {
+			if ( ! array_key_exists( $key, $fields ) ) {
+				continue;
+			}
+			$value = is_array( $fields[ $key ] ) ? reset( $fields[ $key ] ) : $fields[ $key ];
+			$text  = strtolower( trim( (string) $value ) );
+			if ( self::boolean( $value ) || ( '_status' === substr( $key, -7 ) && in_array( $text, self::ON_STATUSES, true ) ) ) {
+				$on = true;
+				break;
+			}
+		}
+		if ( $on && $until && ! empty( $fields[ $until ] ) ) {
+			$end = $fields[ $until ];
+			$end = is_numeric( $end ) ? (int) $end : strtotime( (string) $end );
+			// A date with no time runs to the end of that day.
+			if ( $end && ! is_numeric( $fields[ $until ] ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', trim( (string) $fields[ $until ] ) ) ) {
+				$end += 86399;
+			}
+			if ( $end && $end < time() ) {
+				$on = false;
+			}
+		}
+		return $on;
 	}
 
 	/** True only for an explicit yes; anything else (including missing) is false. */

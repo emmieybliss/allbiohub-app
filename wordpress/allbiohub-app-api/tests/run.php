@@ -37,6 +37,11 @@ check( 'company_stage kept', 'company_stage', Mapper::normalize_key( 'company_st
 check( 'bare prefix kept', 'startup', Mapper::normalize_key( 'startup_' ) );
 check( 'abh prefix removed', 'industry', Mapper::normalize_key( '_abh_industry' ) );
 check( 'stacked prefixes removed', 'country', Mapper::normalize_key( 'abh_startup_country' ) );
+check( 'featured from featured_status when featured is empty', true, Mapper::flag( array( 'featured' => '0', 'featured_status' => 'active' ), 'featured', 'featured_until' ) );
+check( 'featured ends after featured_until', false, Mapper::flag( array( 'featured_status' => 'active', 'featured_until' => '2001-01-01' ), 'featured', 'featured_until' ) );
+check( 'featured until a future date', true, Mapper::flag( array( 'featured' => '1', 'featured_until' => '2099-01-01' ), 'featured', 'featured_until' ) );
+check( 'pending status is not featured', false, Mapper::flag( array( 'featured_status' => 'pending' ), 'featured' ) );
+check( 'unclaimed is not claimed', false, Mapper::flag( array( 'claim_status' => 'unclaimed' ), 'claimed' ) );
 check( 'abh verification status maps to verified', 'verification_status', Mapper::guess_map( array( 'verification_status' ) )['verified'] );
 
 $fields = Mapper::normalize_fields(
